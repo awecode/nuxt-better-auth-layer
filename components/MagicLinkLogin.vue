@@ -1,17 +1,17 @@
 <template>
-  <div class="w-full max-w-md border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+  <div class="w-full max-w-md border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
     <div
       v-if="sent"
       class="space-y-4"
     >
-      <h1 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+      <h1 class="text-lg font-semibold">
         Check your email
       </h1>
-      <p class="text-gray-600 dark:text-gray-400 font-bold">
+      <p class="font-bold">
         Login using the magic link sent to {{ email }}.
       </p>
       <div class="space-y-2">
-        <div class="text-gray-600 dark:text-gray-400">
+        <div>
           Or enter the token received in your email.
         </div>
         <input
@@ -30,7 +30,7 @@
         </button>
       </div>
       <p
-        class="text-sm text-gray-600 dark:text-gray-400"
+        class="text-sm"
       >
         Did not receive an email?
         <button
@@ -46,7 +46,7 @@
       class="space-y-4"
     >
       <h1
-        class="text-lg font-semibold text-gray-900 dark:text-gray-100"
+        class="text-lg font-semibold"
       >
         Log in using email
       </h1>
@@ -77,7 +77,7 @@
       </button>
 
       <p
-        class="text-xs text-gray-500 dark:text-gray-400"
+        class="text-xs"
       >
         You can use the link in your email or a one-time token to log in.
       </p>
