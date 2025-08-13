@@ -1,49 +1,62 @@
 <template>
-  <div class="w-full max-w-md space-y-4 border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-    <h1
-      class="text-lg font-semibold text-gray-900 dark:text-gray-100"
+  <div class="w-full max-w-md border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div v-if="sent">
+      <h1 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        Check your email
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400">
+        Login using the magic link sent to {{ email }}.
+      </p>
+    </div>
+    <div
+      v-else
+      class="space-y-4"
     >
-      Sign in with magic link
-    </h1>
+      <h1
+        class="text-lg font-semibold text-gray-900 dark:text-gray-100"
+      >
+        Log in using email
+      </h1>
 
-    <div class="space-y-2">
-      <label
-        for="email"
-        class="block text-sm text-gray-600 dark:text-gray-300"
+      <div class="space-y-2">
+        <input
+          id="email"
+          v-model="email"
+          type="email"
+          placeholder="your@email.com"
+          class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-600 dark:focus:ring-gray-700"
+          :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-200 dark:border-red-500': email && !isValidEmail }"
+        >
+      <!-- <p
+        v-if="email && !isValidEmail"
+        class="text-xs text-red-600 dark:text-red-400"
       >
-        Email
-      </label>
-      <input
-        id="email"
-        v-model="email"
-        type="email"
-        placeholder="you@example.com"
-        class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-600 dark:focus:ring-gray-700"
+        Enter a valid email address.
+      </p> -->
+      </div>
+
+      <button
+        class="w-full rounded-md bg-gray-900 px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gray-100 dark:text-gray-900"
+        :disabled="isLoading || !isValidEmail"
+        @click="signInWithMagicLink"
       >
+        {{ isLoading ? 'Sending…' : 'Continue with email' }}
+      </button>
+
+      <p
+        class="text-xs text-gray-500 dark:text-gray-400"
+      >
+        You can use the link in your email or a one-time token to log in.
+      </p>
+      <p
+        v-if="errorMessage"
+        class="text-sm text-red-600 dark:text-red-400"
+      >
+        {{ errorMessage }}
+      </p>
     </div>
 
-    <button
-      class="w-full rounded-md bg-gray-900 px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gray-100 dark:text-gray-900"
-      :disabled="isLoading || !email"
-      @click="signInWithMagicLink"
-    >
-      {{ isLoading ? 'Sending…' : 'Send Magic Link' }}
-    </button>
-
-    <p
-      v-if="successMessage"
-      class="text-sm text-green-600 dark:text-green-400"
-    >
-      {{ successMessage }}
-    </p>
-    <p
-      v-if="errorMessage"
-      class="text-sm text-red-600 dark:text-red-400"
-    >
-      {{ errorMessage }}
-    </p>
-
-    <div class="pt-2">
+    <!-- <div class="pt-2">
       <button
         v-if="session.data"
         class="text-sm text-gray-600 underline underline-offset-4 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
@@ -51,24 +64,36 @@
       >
         Sign out
       </button>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import { authClient } from '~~/layers/auth/utils/auth'
 
-const session = await authClient.useSession(useFetch)
+// const session = await authClient.useSession(useFetch)
 
 const email = ref('test@test.com')
 const isLoading = ref(false)
-const successMessage = ref('')
+const sent = ref(false)
 const errorMessage = ref('')
+// const token = ref('')
+// const isVerifying = ref(false)
+
+const isValidEmail = computed(() => {
+  const value = email.value.trim()
+  if (!value) return false
+  const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return pattern.test(value)
+})
 
 const signInWithMagicLink = async () => {
-  if (!email.value) return
+  if (!isValidEmail.value) {
+    errorMessage.value = 'Enter a valid email address.'
+    return
+  }
   isLoading.value = true
-  successMessage.value = ''
+  //   successMessage.value = ''
   errorMessage.value = ''
   const { error } = await authClient.signIn.magicLink({
     email: email.value,
@@ -77,11 +102,33 @@ const signInWithMagicLink = async () => {
     errorCallbackURL: '/error',
   })
   if (error) {
-    errorMessage.value = error.message || 'Failed to send magic link'
+    errorMessage.value = error.message || 'Failed to send email'
   }
   else {
-    successMessage.value = 'Magic link sent. Check your email.'
+    sent.value = true
   }
   isLoading.value = false
 }
+
+// const verifyToken = async () => {
+//   if (!token.value) return
+//   isVerifying.value = true
+//   successMessage.value = ''
+//   errorMessage.value = ''
+//   const { error } = await authClient.magicLink.verify({
+//     query: {
+//       token: token.value,
+//       callbackURL: '/',
+//       newUserCallbackURL: '/',
+//       errorCallbackURL: '/error',
+//     },
+//   })
+//   if (error) {
+//     errorMessage.value = error.message || 'Invalid or expired code'
+//   }
+//   else {
+//     successMessage.value = 'Success! You are now signed in.'
+//   }
+//   isVerifying.value = false
+// }
 </script>
