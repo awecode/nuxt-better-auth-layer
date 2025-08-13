@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth'
 import { magicLink } from 'better-auth/plugins'
+import { sendMagicLinkEmail } from './email'
 
 export const auth = betterAuth({
   emailAndPassword: {
@@ -8,7 +9,7 @@ export const auth = betterAuth({
   plugins: [
     magicLink({
       sendMagicLink: async ({ email, token, url }) => {
-        console.log(email, token, url)
+        await sendMagicLinkEmail(email, token, url)
       },
     }),
   ],

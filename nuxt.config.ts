@@ -5,6 +5,12 @@ export default defineNuxtConfig({
     name: 'auth',
   },
   runtimeConfig: {
+    ses: {
+      region: 'us-east-1',
+      accessKeyId: '',
+      secretKey: '',
+      fromEmail: '',
+    },
     public: {
       auth: {
         loginCallbackURL: '/',
