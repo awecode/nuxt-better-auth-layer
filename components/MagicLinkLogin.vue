@@ -88,16 +88,6 @@
         {{ errorMessage }}
       </p>
     </div>
-
-    <!-- <div class="pt-2">
-      <button
-        v-if="session.data"
-        class="text-sm text-gray-600 underline underline-offset-4 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-        @click="authClient.signOut()"
-      >
-        Sign out
-      </button>
-    </div> -->
   </div>
 </template>
 
@@ -112,6 +102,7 @@ const sent = ref(false)
 const errorMessage = ref('')
 const token = ref('')
 const isVerifying = ref(false)
+const { public: { auth } } = useRuntimeConfig()
 
 const isValidEmail = computed(() => {
   const value = email.value.trim()
@@ -129,9 +120,9 @@ const signInWithMagicLink = async () => {
   errorMessage.value = ''
   const { error } = await authClient.signIn.magicLink({
     email: email.value,
-    callbackURL: '/',
-    newUserCallbackURL: '/',
-    errorCallbackURL: '/error',
+    callbackURL: auth.loginCallbackURL,
+    newUserCallbackURL: auth.newUserCallbackURL,
+    errorCallbackURL: auth.errorCallbackURL,
   })
   if (error) {
     errorMessage.value = error.message || 'Failed to send email'
@@ -149,13 +140,13 @@ const verifyToken = async () => {
   const { error } = await authClient.magicLink.verify({
     query: {
       token: token.value,
-      callbackURL: '/',
-      newUserCallbackURL: '/',
-      errorCallbackURL: '/error',
     },
   })
   if (error) {
     errorMessage.value = error.message || 'Invalid or expired code'
+  }
+  else {
+    navigateTo(auth.loginCallbackURL)
   }
   isVerifying.value = false
 }
