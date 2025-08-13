@@ -1,11 +1,44 @@
 <template>
   <div class="w-full max-w-md border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-    <div v-if="sent">
+    <div
+      v-if="sent"
+      class="space-y-4"
+    >
       <h1 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
         Check your email
       </h1>
-      <p class="text-gray-600 dark:text-gray-400">
+      <p class="text-gray-600 dark:text-gray-400 font-bold">
         Login using the magic link sent to {{ email }}.
+      </p>
+      <div class="space-y-2">
+        <div class="text-gray-600 dark:text-gray-400">
+          Or enter the token received in your email.
+        </div>
+        <input
+          id="token"
+          v-model="token"
+          type="text"
+          placeholder="Token"
+          class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-600 dark:focus:ring-gray-700"
+        >
+        <button
+          class="w-full rounded-md bg-gray-900 px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gray-100 dark:text-gray-900"
+          :disabled="isVerifying || !token"
+          @click="verifyToken"
+        >
+          Verify
+        </button>
+      </div>
+      <p
+        class="text-sm text-gray-600 dark:text-gray-400"
+      >
+        Did not receive an email?
+        <button
+          class="text-blue-500"
+          @click="sent = false"
+        >
+          Resend
+        </button>
       </p>
     </div>
     <div
@@ -77,8 +110,8 @@ const email = ref('test@test.com')
 const isLoading = ref(false)
 const sent = ref(false)
 const errorMessage = ref('')
-// const token = ref('')
-// const isVerifying = ref(false)
+const token = ref('')
+const isVerifying = ref(false)
 
 const isValidEmail = computed(() => {
   const value = email.value.trim()
@@ -93,7 +126,6 @@ const signInWithMagicLink = async () => {
     return
   }
   isLoading.value = true
-  //   successMessage.value = ''
   errorMessage.value = ''
   const { error } = await authClient.signIn.magicLink({
     email: email.value,
@@ -110,25 +142,21 @@ const signInWithMagicLink = async () => {
   isLoading.value = false
 }
 
-// const verifyToken = async () => {
-//   if (!token.value) return
-//   isVerifying.value = true
-//   successMessage.value = ''
-//   errorMessage.value = ''
-//   const { error } = await authClient.magicLink.verify({
-//     query: {
-//       token: token.value,
-//       callbackURL: '/',
-//       newUserCallbackURL: '/',
-//       errorCallbackURL: '/error',
-//     },
-//   })
-//   if (error) {
-//     errorMessage.value = error.message || 'Invalid or expired code'
-//   }
-//   else {
-//     successMessage.value = 'Success! You are now signed in.'
-//   }
-//   isVerifying.value = false
-// }
+const verifyToken = async () => {
+  if (!token.value) return
+  isVerifying.value = true
+  errorMessage.value = ''
+  const { error } = await authClient.magicLink.verify({
+    query: {
+      token: token.value,
+      callbackURL: '/',
+      newUserCallbackURL: '/',
+      errorCallbackURL: '/error',
+    },
+  })
+  if (error) {
+    errorMessage.value = error.message || 'Invalid or expired code'
+  }
+  isVerifying.value = false
+}
 </script>
