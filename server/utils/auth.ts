@@ -8,8 +8,8 @@ export const auth = betterAuth({
   },
   plugins: [
     magicLink({
-      sendMagicLink: async ({ email, token, url }) => {
-        await sendMagicLinkEmail(email, token, url)
+      sendMagicLink: async ({ email, token, url }, request) => {
+        await sendMagicLinkEmail(email, token, url, request)
       },
     }),
   ],
