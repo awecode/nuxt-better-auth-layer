@@ -109,6 +109,18 @@ export default defineProtectedHandler(async (event) => {
   { token: 'ABC123' }
   ```
 
+## Bearer Token Authentication
+
+For web applications, use the default cookie-based authentication. Bearer tokens are needed for mobile apps or other clients that can't use cookies. Use the token received during login as the bearer token.
+
+```bash
+# Example API call with Bearer token
+curl -X POST https://yourapp.com/api/protected \
+  -H "Authorization: Bearer t0k3ng035h3r3..." \
+  -H "Content-Type: application/json" \
+  -d '{"data": "example"}'
+```
+
 ## Email Templates
 
 Customize the magic link email template at `server/assets/magic-link.html`.
