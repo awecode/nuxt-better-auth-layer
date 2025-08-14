@@ -102,9 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { authClient } from '#layers/auth/utils/auth'
-
-// const session = await authClient.useSession(useFetch)
+const { client: authClient } = useAuth()
 
 const email = ref('')
 const isLoading = ref(false)

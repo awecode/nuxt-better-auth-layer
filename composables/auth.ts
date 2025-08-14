@@ -1,10 +1,11 @@
 // https://github.com/atinux/nuxthub-better-auth/blob/main/app/composables/auth.ts
-import { defu } from 'defu'
 import { createAuthClient } from 'better-auth/client'
+import { magicLinkClient } from 'better-auth/client/plugins'
+import { defu } from 'defu'
 import type {
+  ClientOptions,
   InferSessionFromClient,
   InferUserFromClient,
-  ClientOptions,
 } from 'better-auth/client'
 import type { RouteLocationRaw } from 'vue-router'
 
@@ -19,6 +20,7 @@ export function useAuth() {
   const headers = import.meta.server ? useRequestHeaders() : undefined
 
   const client = createAuthClient({
+    plugins: [magicLinkClient()],
     baseURL: url.origin,
     fetchOptions: {
       headers,
