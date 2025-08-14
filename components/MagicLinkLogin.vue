@@ -106,7 +106,7 @@ import { authClient } from '#layers/auth/utils/auth'
 
 // const session = await authClient.useSession(useFetch)
 
-const email = ref('test@test.com')
+const email = ref('')
 const isLoading = ref(false)
 const sent = ref(false)
 const errorMessage = ref('')
@@ -157,7 +157,12 @@ const verifyToken = async () => {
     navigateTo(auth.loginCallbackURL)
   }
   catch (error) {
-    errorMessage.value = error.data || error || 'Invalid or expired token'
+    if (typeof error === 'string') {
+      errorMessage.value = error
+    }
+    else {
+      errorMessage.value = 'Invalid or expired token'
+    }
   }
   isVerifying.value = false
 }

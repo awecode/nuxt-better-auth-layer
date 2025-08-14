@@ -3,3 +3,14 @@
     <MagicLinkLogin />
   </div>
 </template>
+
+<script setup lang="ts">
+import { authClient } from '#layers/auth/utils/auth'
+
+const { data: sessionData } = await authClient.useSession(useFetch)
+
+if (sessionData.value) {
+  const { public: { auth } } = useRuntimeConfig()
+  navigateTo(auth.loginCallbackURL)
+}
+</script>
