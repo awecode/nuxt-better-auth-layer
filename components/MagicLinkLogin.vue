@@ -157,7 +157,7 @@ const verifyToken = async () => {
     navigateTo(auth.loginCallbackURL)
   }
   catch (error) {
-    errorMessage.value = error.data || 'Invalid or expired code'
+    errorMessage.value = error.data || error || 'Invalid or expired token'
   }
   isVerifying.value = false
 }

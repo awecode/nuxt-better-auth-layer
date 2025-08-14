@@ -16,11 +16,11 @@ export default defineEventHandler(async (event) => {
     }
     else {
       setResponseStatus(event, 400)
-      return 'Invalid or expired code'
+      return 'Invalid or expired token'
     }
   }
   catch {
     setResponseStatus(event, 400)
-    return 'Invalid or expired code'
+    return 'Invalid or expired token'
   }
 })
