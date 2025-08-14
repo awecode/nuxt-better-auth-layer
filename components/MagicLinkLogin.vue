@@ -30,6 +30,12 @@
         >
           Verify
         </button>
+        <p
+          v-if="errorMessage"
+          class="text-sm text-red-600 dark:text-red-400"
+        >
+          {{ errorMessage }}
+        </p>
       </div>
       <p
         class="text-sm"
@@ -141,16 +147,17 @@ const verifyToken = async () => {
   if (!token.value) return
   isVerifying.value = true
   errorMessage.value = ''
-  const { error } = await authClient.magicLink.verify({
-    query: {
-      token: token.value,
-    },
-  })
-  if (error) {
-    errorMessage.value = error.message || 'Invalid or expired code'
-  }
-  else {
+  try {
+    await $fetch('/api/auth/magic-link-verify', {
+      method: 'POST',
+      body: {
+        token: token.value,
+      },
+    })
     navigateTo(auth.loginCallbackURL)
+  }
+  catch (error) {
+    errorMessage.value = error.data || 'Invalid or expired code'
   }
   isVerifying.value = false
 }
