@@ -67,7 +67,7 @@ export function getUserAgentInfo(ua: string): string {
   return browser || os || 'Unknown'
 }
 
-export const sendMagicLinkEmail = async (email: string, token: string, url: string, request: Request) => {
+export const sendMagicLinkEmail = async (email: string, token: string, url: string, request?: Request) => {
   const date = new Date().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -78,7 +78,7 @@ export const sendMagicLinkEmail = async (email: string, token: string, url: stri
     minute: '2-digit',
   })
 
-  const useragent = getUserAgentInfo(request.headers.get('user-agent') || '')
+  const useragent = getUserAgentInfo(request?.headers.get('user-agent') || '')
 
   const html = renderTemplate(magicLinkTemplate, { email, token, url, date, time, useragent })
   const text = htmlToText(html)
