@@ -17,7 +17,28 @@ export async function sendSesEmail({
 }: SendEmailParams): Promise<void> {
   const config = useRuntimeConfig()
 
-  const SES_API = `https://email.${config.ses.region}.amazonaws.com/v2/email/outbound-emails`
+  const sesEndpoint = `https://email.${config.ses.region}.amazonaws.com/v2/email/outbound-emails`
+  const fromEmail = config.ses.fromEmail
+
+  if (!fromEmail) {
+    throw new Error('Please configure NUXT_SES_FROM_EMAIL.')
+  }
+
+  if (!message && !html) {
+    throw new Error('Please provide either message or html.')
+  }
+
+  const body: { Text?: { Data: string }, Html?: { Data: string } } = {}
+  if (message) {
+    body.Text = {
+      Data: message,
+    }
+  }
+  if (html) {
+    body.Html = {
+      Data: html,
+    }
+  }
 
   const aws = new AwsClient({
     accessKeyId: config.ses.accessKeyId,
@@ -25,7 +46,7 @@ export async function sendSesEmail({
   })
 
   const emailParams = {
-    FromEmailAddress: config.ses.from,
+    FromEmailAddress: config.ses.fromEmail,
     Destination: {
       ToAddresses: toEmails,
     },
@@ -35,23 +56,19 @@ export async function sendSesEmail({
         Subject: {
           Data: subject,
         },
-        Body: {
-          Text: {
-            Data: message,
-          },
-          Html: {
-            Data: html,
-          },
-        },
+        Body: body,
       },
     },
   }
 
-  await aws.fetch(SES_API, {
+  const response = await aws.fetch(sesEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(emailParams),
   })
+  if (response.status !== 200) {
+    throw new Error('Failed to send email')
+  }
 }
