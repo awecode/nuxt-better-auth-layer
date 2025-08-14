@@ -130,9 +130,9 @@ const signInWithMagicLink = async () => {
   errorMessage.value = ''
   const { error } = await authClient.signIn.magicLink({
     email: email.value,
-    callbackURL: auth.loginCallbackURL,
-    newUserCallbackURL: auth.newUserCallbackURL,
-    errorCallbackURL: auth.errorCallbackURL,
+    callbackURL: auth.redirectUserTo,
+    newUserCallbackURL: auth.redirectNewUserTo || auth.redirectUserTo,
+    errorCallbackURL: auth.redirectErrorTo,
   })
   if (error) {
     errorMessage.value = error.message || 'Failed to send email'

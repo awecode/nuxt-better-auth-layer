@@ -13,9 +13,9 @@ export default defineNuxtConfig({
     },
     public: {
       auth: {
-        loginCallbackURL: '/',
-        newUserCallbackURL: '/',
-        errorCallbackURL: '/auth/error',
+        redirectUserTo: '/',
+        redirectNewUserTo: undefined,
+        redirectErrorTo: '/auth/error',
         authRequiredByDefault: true,
         loginPage: '/login',
       },
