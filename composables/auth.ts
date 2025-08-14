@@ -11,6 +11,7 @@ import type { RouteLocationRaw } from 'vue-router'
 interface RuntimeAuthConfig {
   redirectUserTo: RouteLocationRaw | string
   redirectGuestTo: RouteLocationRaw | string
+  authRequiredByDefault: boolean
 }
 
 export function useAuth() {

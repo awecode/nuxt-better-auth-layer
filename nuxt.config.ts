@@ -16,8 +16,8 @@ export default defineNuxtConfig({
         redirectUserTo: '/',
         redirectNewUserTo: undefined,
         redirectErrorTo: '/auth/error',
+        redirectGuestTo: '/login',
         authRequiredByDefault: true,
-        loginPage: '/login',
       },
     },
   }, alias: {

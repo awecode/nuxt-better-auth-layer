@@ -1,3 +1,4 @@
+// https://github.com/atinux/nuxthub-better-auth/blob/main/app/middleware/auth.global.ts
 import { defu } from 'defu'
 
 type MiddlewareOptions = true | false | {
@@ -48,12 +49,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (import.meta.client) {
     await fetchSession()
   }
-  // If not authenticated, redirect to home
-  if (!loggedIn.value) {
+  // If not authenticated, redirect
+  if (!loggedIn.value && (to.meta?.auth === true || to.meta?.auth?.only === 'user' || (to.meta?.auth === undefined && options.authRequiredByDefault))) {
     // Avoid infinite redirect
     if (to.path === redirectGuestTo) {
       return
     }
+    // TODO Add intended destination to query param so that users can be redirected back to the page they were trying to access
     return navigateTo(redirectGuestTo)
   }
 })
