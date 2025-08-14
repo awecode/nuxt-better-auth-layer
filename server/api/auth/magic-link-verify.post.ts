@@ -3,6 +3,13 @@ import { auth } from '../../utils/auth'
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const token = body.token
+  if (!token) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Token is required',
+      data: { field: 'token' },
+    })
+  }
   try {
     const data = await auth.api.magicLinkVerify({
       query: {
@@ -15,12 +22,18 @@ export default defineEventHandler(async (event) => {
       return data
     }
     else {
-      setResponseStatus(event, 400)
-      return 'Invalid or expired token'
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Invalid or expired token',
+        data: { field: 'token' },
+      })
     }
   }
   catch {
-    setResponseStatus(event, 400)
-    return 'Invalid or expired token'
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Invalid or expired token',
+      data: { field: 'token' },
+    })
   }
 })

@@ -154,13 +154,8 @@ const verifyToken = async () => {
     })
     navigateTo(auth.redirectUserTo)
   }
-  catch (error) {
-    if (typeof error === 'string') {
-      errorMessage.value = error
-    }
-    else {
-      errorMessage.value = 'Invalid or expired token'
-    }
+  catch (error: any) {
+    errorMessage.value = getErrorMessage(error) || 'Invalid or expired token'
   }
   isVerifying.value = false
 }
