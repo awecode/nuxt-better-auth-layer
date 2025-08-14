@@ -94,6 +94,8 @@ export const sendMagicLinkEmail = async (email: string, token: string, url: stri
   const time = new Date().toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
+    timeZone: 'UTC',
+    timeZoneName: 'short',
   })
 
   const useragent = getUserAgentInfo(request?.headers.get('user-agent') || '')
