@@ -154,7 +154,7 @@ const verifyToken = async () => {
         token: token.value,
       },
     })
-    navigateTo(auth.loginCallbackURL)
+    navigateTo(auth.redirectUserTo)
   }
   catch (error) {
     if (typeof error === 'string') {

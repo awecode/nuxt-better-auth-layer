@@ -1,4 +1,3 @@
-import magicLinkTemplate from '../templates/magic-link.html'
 import { sendSesEmail } from './ses'
 
 function htmlToText(html: string) {
@@ -31,7 +30,6 @@ function htmlToText(html: string) {
     // Trim each line and overall
     .split('\n').map(line => line.trim()).join('\n').trim()
 }
-
 
 export const renderTemplate = (template: string, variables: Record<string, string | number>): string => {
   for (const [key, value] of Object.entries(variables)) {
@@ -79,7 +77,10 @@ export const sendMagicLinkEmail = async (email: string, token: string, url: stri
   })
 
   const useragent = getUserAgentInfo(request?.headers.get('user-agent') || '')
-
+  const magicLinkTemplate = await useStorage<string>('assets:server').getItem(`magic-link.html`)
+  if (!magicLinkTemplate) {
+    throw new Error('Magic link email template not found')
+  }
   const html = renderTemplate(magicLinkTemplate, { email, token, url, date, time, useragent })
   const text = htmlToText(html)
   await sendSesEmail({

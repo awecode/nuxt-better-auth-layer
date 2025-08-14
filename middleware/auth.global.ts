@@ -35,7 +35,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const { loggedIn, options, fetchSession } = useAuth()
   const { only, redirectUserTo, redirectGuestTo } = defu(to.meta?.auth, options)
 
-
   // If guest mode, redirect if authenticated
   if (only === 'guest' && loggedIn.value) {
     // Avoid infinite redirect

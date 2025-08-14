@@ -23,5 +23,4 @@ export default defineNuxtConfig({
   }, alias: {
     '#layers/auth': fileURLToPath(new URL('.', import.meta.url)),
   },
-
 })
