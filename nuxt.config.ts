@@ -16,6 +16,8 @@ export default defineNuxtConfig({
         loginCallbackURL: '/',
         newUserCallbackURL: '/',
         errorCallbackURL: '/auth/error',
+        authRequiredByDefault: true,
+        loginPage: '/login',
       },
     },
   }, alias: {

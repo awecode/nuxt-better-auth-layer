@@ -7,6 +7,10 @@
 <script setup lang="ts">
 import { authClient } from '#layers/auth/utils/auth'
 
+definePageMeta({
+  auth: false,
+})
+
 const { data: sessionData } = await authClient.useSession(useFetch)
 
 if (sessionData.value) {
