@@ -14,7 +14,7 @@ cp -r layers/auth/server/assets server/ 2>/dev/null || (mkdir -p server && cp -r
 
 ### Migrate database
 
-An example drizzle integration with sqlite is provided in the layer in the file `layers/auth/server/utils/auth.ts`. You can use this as a starting point to integrate with your own database. Use the following to generate the schema and migrate the database. Change the schema file paths to match your own.
+An example drizzle integration with sqlite is provided in the layer in the file `server/utils/auth.ts`. You can use this as a starting point to integrate with your own database. Use the following to generate the schema and migrate the database. Change the schema file paths to match your own if necessary.
 
 ```bash
 pnpx drizzle-kit push
@@ -59,7 +59,7 @@ const {
 ## Components
 
 ### MagicLinkLogin
-Email-based authentication component. Sends both a clickable link and a one-time code that users can enter manually.
+Email-based authentication component. Sends both a clickable link and a one-time token that users can enter manually.
 
 ```vue
 <template>
@@ -117,7 +117,7 @@ export default defineProtectedHandler(async (event) => {
   { email: 'user@example.com' }
   ```
 
-- `POST /api/auth/magic-link-verify` - Verify one-time code
+- `POST /api/auth/magic-link-verify` - Verify one-time token
   ```ts
   { token: 'ABC123' }
   ```
@@ -140,7 +140,7 @@ Customize the magic link email template at `server/assets/magic-link.html`.
 
 Available template variables:
 - `{{email}}` - User's email
-- `{{token}}` - One-time code
+- `{{token}}` - One-time token
 - `{{url}}` - Magic link URL
 - `{{date}}` - Current date
 - `{{time}}` - Current time (UTC)
@@ -148,5 +148,5 @@ Available template variables:
 
 ## Credits
 
-- [better-auth](https://github.com/better-auth/better-auth)
+- [Better Auth](https://github.com/better-auth/better-auth)
 - [Sébastien's NuxtHub Better Auth Demo for composable, middleware, and plugins](https://github.com/atinux/nuxthub-better-auth)
