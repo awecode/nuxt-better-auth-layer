@@ -1,5 +1,7 @@
 import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { magicLink, bearer } from 'better-auth/plugins'
+import { useDb } from '../../../../server/utils/db'
 import { sendMagicLinkEmail } from './email'
 
 export const auth = betterAuth({
@@ -14,8 +16,8 @@ export const auth = betterAuth({
       },
     }),
   ],
-  // database: drizzleAdapter(useDb(), {
-  //   provider: 'sqlite',
-  //   usePlural: true,
-  // }),
+  database: drizzleAdapter(useDb(), {
+    provider: 'sqlite',
+    usePlural: true,
+  }),
 })
