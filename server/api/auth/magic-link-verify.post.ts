@@ -29,10 +29,10 @@ export default defineEventHandler(async (event) => {
       })
     }
   }
-  catch {
+  catch (error: any) {
     throw createError({
-      statusCode: 400,
-      statusMessage: 'Invalid or expired token',
+      statusCode: error.statusCode || 400,
+      statusMessage: error.message || 'Invalid or expired token',
       data: { field: 'token' },
     })
   }

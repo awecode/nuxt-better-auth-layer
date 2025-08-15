@@ -5,6 +5,10 @@ export default defineNuxtConfig({
     name: 'auth',
   },
   runtimeConfig: {
+    auth: {
+      allowedDomains: '',
+      allowedEmails: '',
+    },
     ses: {
       region: 'us-east-1',
       accessKeyId: '',
@@ -14,7 +18,7 @@ export default defineNuxtConfig({
     public: {
       auth: {
         redirectUserTo: '/',
-        redirectNewUserTo: undefined,
+        redirectNewUserTo: '/',
         redirectErrorTo: '/auth/error',
         redirectGuestTo: '/login',
         authRequiredByDefault: true,
