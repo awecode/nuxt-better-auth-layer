@@ -43,7 +43,7 @@
         Did not receive an email?
         <button
           class="text-blue-500"
-          @click="sent = false"
+          @click="resend"
         >
           Resend
         </button>
@@ -102,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-const { client: authClient } = useAuth()
+const { client, fetchSession } = useAuth()
 
 const email = ref('')
 const isLoading = ref(false)
@@ -126,7 +126,7 @@ const signInWithMagicLink = async () => {
   }
   isLoading.value = true
   errorMessage.value = ''
-  const { error } = await authClient.signIn.magicLink({
+  const { error } = await client.signIn.magicLink({
     email: email.value,
     callbackURL: auth.redirectUserTo,
     newUserCallbackURL: auth.redirectNewUserTo || auth.redirectUserTo,
@@ -152,11 +152,18 @@ const verifyToken = async () => {
         token: token.value,
       },
     })
+    await fetchSession()
     navigateTo(auth.redirectUserTo)
   }
   catch (error: any) {
     errorMessage.value = getErrorMessage(error) || 'Invalid or expired token'
   }
   isVerifying.value = false
+}
+
+const resend = async () => {
+  sent.value = false
+  token.value = ''
+  errorMessage.value = ''
 }
 </script>
