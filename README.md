@@ -27,11 +27,15 @@ pnpm drizzle-kit migrate
 ### Configure environment variables
 
 ```bash
-# SES Configuration (required for production)
+# SES Configuration (required for production for sending emails)
 SES_REGION=us-east-1
 SES_ACCESS_KEY_ID=your_access_key_id
 SES_SECRET_KEY=your_secret_key
 SES_FROM_EMAIL=noreply@example.com
+
+# Access restrictions (optional - see below)
+NUXT_AUTH_ALLOWED_DOMAINS=example.com,company.org
+NUXT_AUTH_ALLOWED_EMAILS=admin@example.com,user@company.org
 
 # Auth redirects (optional - defaults provided)
 NUXT_PUBLIC_AUTH_REDIRECT_USER_TO=/
@@ -133,6 +137,48 @@ curl -X POST https://yourapp.com/api/protected \
   -H "Content-Type: application/json" \
   -d '{"data": "example"}'
 ```
+
+## Access Restrictions by Email Address or Domain
+
+You can restrict authentication to specific email domains or individual email addresses using environment variables. To enable this, use the allowDomains and/or allowEmails hook utils in better auth config hooks.
+
+```ts
+// server/utils/auth.ts
+import { allowDomains, allowEmails } from '../lib/hook-utils'
+
+export const auth = betterAuth({
+  // ...
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      allowDomains(ctx)
+      allowEmails(ctx)
+    }),
+  },
+})
+```
+
+### Allowed Domains
+Restrict sign-ups to specific email domains:
+
+```bash
+# Allow only users with @example.com or @company.org emails
+NUXT_AUTH_ALLOWED_DOMAINS=example.com,company.org
+# Allow any domain (default behavior)
+NUXT_AUTH_ALLOWED_DOMAINS=*
+```
+
+### Allowed Emails
+Restrict sign-ups to specific email addresses:
+
+```bash
+# Allow only these specific email addresses
+NUXT_AUTH_ALLOWED_EMAILS=admin@example.com,user@company.org
+# Allow any email (default behavior)
+NUXT_AUTH_ALLOWED_EMAILS=*
+```
+
+- Both restrictions apply to magic link authentication (`/sign-in/magic-link`)
+
 
 ## Email Templates
 
