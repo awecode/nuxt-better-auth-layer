@@ -4,7 +4,7 @@ Nuxt layer providing magic link authentication with better-auth.
 
 ## Setup
 
-2. **Install layer and dependencies:**
+### Install layer and dependencies
 
 ```bash
 pnpx giget gh:awecode/nuxt-better-auth-layer layers/auth
@@ -12,7 +12,20 @@ pnpm install better-auth aws4fetch
 cp -r layers/auth/server/assets server/ 2>/dev/null || (mkdir -p server && cp -r layers/auth/server/assets server/)
 ```
 
-2. **Configure environment variables:**
+### Migrate database
+
+An example drizzle integration with sqlite is provided in the layer in the file `layers/auth/server/utils/auth.ts`. You can use this as a starting point to integrate with your own database. Use the following to generate the schema and migrate the database. Change the schema file paths to match your own.
+
+```bash
+pnpx drizzle-kit push
+npx @better-auth/cli@latest generate --config layers/auth/server/utils/auth.ts --output server/db/auth_schema.ts --yes
+echo -e "\nexport * from './auth_schema'" >> server/db/schema.ts
+pnpm drizzle-kit generate
+pnpm drizzle-kit migrate
+```
+
+### Configure environment variables
+
 ```bash
 # SES Configuration (required for production)
 SES_REGION=us-east-1
@@ -28,7 +41,7 @@ NUXT_PUBLIC_AUTH_REDIRECT_GUEST_TO=/login
 NUXT_PUBLIC_AUTH_AUTH_REQUIRED_BY_DEFAULT=true
 ```
 
-## useAuth Composable
+## `useAuth` Composable
 
 ```ts
 const { 
@@ -132,3 +145,8 @@ Available template variables:
 - `{{date}}` - Current date
 - `{{time}}` - Current time (UTC)
 - `{{useragent}}` - Browser/OS info
+
+## Credits
+
+- [better-auth](https://github.com/better-auth/better-auth)
+- [Sébastien's NuxtHub Better Auth Demo for composable, middleware, and plugins](https://github.com/atinux/nuxthub-better-auth)
