@@ -36,6 +36,7 @@ SES_FROM_EMAIL=noreply@example.com
 # Access restrictions (optional - see below)
 NUXT_AUTH_ALLOWED_DOMAINS=example.com,company.org
 NUXT_AUTH_ALLOWED_EMAILS=admin@example.com,user@company.org
+NUXT_AUTH_ADMIN_EMAILS=admin@example.com,superuser@company.org
 
 # Auth redirects (optional - defaults provided)
 NUXT_PUBLIC_AUTH_REDIRECT_USER_TO=/
@@ -144,7 +145,7 @@ You can restrict authentication to specific email domains or individual email ad
 
 ```ts
 // server/utils/auth.ts
-import { allowDomains, allowEmails } from '../lib/hook-utils'
+import { allowDomains, allowEmails, setAdminForEmail } from '../lib/hook-utils'
 
 export const auth = betterAuth({
   // ...
@@ -153,6 +154,15 @@ export const auth = betterAuth({
       allowDomains(ctx)
       allowEmails(ctx)
     }),
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          return setAdminForEmail(user)
+        },
+      },
+    },
   },
 })
 ```
@@ -177,7 +187,13 @@ NUXT_AUTH_ALLOWED_EMAILS=admin@example.com,user@company.org
 NUXT_AUTH_ALLOWED_EMAILS=*
 ```
 
-- Both restrictions apply to magic link authentication (`/sign-in/magic-link`)
+### Admin Role Assignment
+Automatically assign admin role to specific email addresses during user creation:
+
+```bash
+# Automatically set admin role for these email addresses
+NUXT_AUTH_ADMIN_EMAILS=admin@example.com,superuser@company.org
+```
 
 
 ## Email Templates
