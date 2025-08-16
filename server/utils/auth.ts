@@ -3,7 +3,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { createAuthMiddleware } from 'better-auth/api'
 import { magicLink, bearer, admin } from 'better-auth/plugins'
 import { useDb } from '../../../../server/utils/db'
-import { allowDomains, allowEmails } from '../lib/hook-utils'
+import { allowDomains, allowEmails, setAdminForEmail } from '../lib/hook-utils'
 import { sendMagicLinkEmail } from './email'
 
 export const auth = betterAuth({
@@ -28,5 +28,14 @@ export const auth = betterAuth({
       allowDomains(ctx)
       allowEmails(ctx)
     }),
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+          return setAdminForEmail(user)
+        },
+      },
+    },
   },
 })

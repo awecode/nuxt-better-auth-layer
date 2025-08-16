@@ -1,5 +1,5 @@
 import { APIError } from 'better-auth/api'
-import type { MiddlewareContext, MiddlewareOptions } from 'better-auth'
+import type { MiddlewareContext, MiddlewareOptions, User } from 'better-auth'
 
 type Ctx = MiddlewareContext<MiddlewareOptions>
 
@@ -25,5 +25,27 @@ export const allowEmails = (ctx: Ctx) => {
       throw new APIError('BAD_REQUEST', {
         message: 'You are not authorized to log in with this email.',
       })
+  }
+}
+
+/**
+ * Set admin role for email if email is in NUXT_AUTH_ADMIN_EMAILS environment variable
+ * This only works for user create databaseHooks
+ * @param user - User object
+ * @returns User object with admin role set if email is in NUXT_AUTH_ADMIN_EMAILS environment variable
+ */
+export const setAdminForEmail = (user: User) => {
+  const config = useRuntimeConfig()
+  const adminEmails = config.auth.adminEmails?.split(',') || []
+  if (adminEmails.includes(user.email)) {
+    return {
+      data: {
+        ...user,
+        role: 'admin',
+      },
+    }
+  }
+  return {
+    data: user,
   }
 }
