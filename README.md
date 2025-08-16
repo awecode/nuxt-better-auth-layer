@@ -38,6 +38,10 @@ NUXT_AUTH_ALLOWED_DOMAINS=example.com,company.org
 NUXT_AUTH_ALLOWED_EMAILS=admin@example.com,user@company.org
 NUXT_AUTH_ADMIN_EMAILS=admin@example.com,superuser@company.org
 
+# API route protection (optional - see below)
+NUXT_AUTH_AUTHENTICATED_ONLY_API_ROUTES=/api/user,/api/profile
+NUXT_AUTH_ADMIN_ONLY_API_ROUTES=/api/admin,/api/management
+
 # Auth redirects (optional - defaults provided)
 NUXT_PUBLIC_AUTH_REDIRECT_USER_TO=/
 NUXT_PUBLIC_AUTH_REDIRECT_NEW_USER_TO=/welcome
@@ -107,7 +111,27 @@ definePageMeta({
 
 ## API Route Protection
 
-### Allowing only authenticated users
+### Route Protection via Nuxt Config
+
+You can protect multiple API routes at once using environment variables. This applies protection automatically via middleware without needing to wrap each handler individually.
+
+```ts
+export default defineNuxtConfig({
+  runtimeConfig: {
+    auth: {
+        authenticatedOnlyApiRoutes: '/api/user,/api/profile',
+        adminOnlyApiRoutes: '/api/admin,/api/superadmin',
+      },
+  },
+})
+```
+
+ - You can also use the `NUXT_AUTH_AUTHENTICATED_ONLY_API_ROUTES` and `NUXT_AUTH_ADMIN_ONLY_API_ROUTES` environment variables to set the routes.
+ - Protecting `/api/user` will also protect `/api/user` and anything under it like `/api/user/profile` and `/api/user/settings` but won't protect something like `/api/user-registration`.
+
+### Individual Route Protection
+
+#### Allowing only authenticated users
 
 ```ts
 // server/api/authenticated.ts
@@ -117,7 +141,7 @@ export default defineAuthenticatedHandler(async (event) => {
 })
 ```
 
-### Allowing only admin users
+#### Allowing only admin users
 
 ```ts
 // server/api/admin.ts
