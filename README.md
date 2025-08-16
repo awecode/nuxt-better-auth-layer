@@ -107,11 +107,23 @@ definePageMeta({
 
 ## API Route Protection
 
+## Allowing only authenticated users
+
 ```ts
-// server/api/protected.ts
+// server/api/authenticated.ts
 export default defineAuthenticatedHandler(async (event) => {
   const { user } = event.context.auth
-  return { message: `Hello ${user.email}` }
+  return { message: `Hello user - ${user.email}` }
+})
+```
+
+## Allowing only admin users
+
+```ts
+// server/api/admin.ts
+export default defineAdminHandler(async (event) => {
+  const { user } = event.context.auth
+  return { message: `Hello admin - ${user.email}` }
 })
 ```
 
