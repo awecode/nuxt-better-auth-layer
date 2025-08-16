@@ -109,7 +109,7 @@ definePageMeta({
 
 ```ts
 // server/api/protected.ts
-export default defineProtectedHandler(async (event) => {
+export default defineAuthenticatedHandler(async (event) => {
   const { user } = event.context.auth
   return { message: `Hello ${user.email}` }
 })
