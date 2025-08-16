@@ -9,6 +9,8 @@ export default defineNuxtConfig({
       allowedDomains: '',
       allowedEmails: '',
       adminEmails: '',
+      authenticatedOnlyApiRoutes: '',
+      adminOnlyApiRoutes: '',
     },
     ses: {
       region: 'us-east-1',

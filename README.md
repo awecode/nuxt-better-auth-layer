@@ -107,7 +107,7 @@ definePageMeta({
 
 ## API Route Protection
 
-## Allowing only authenticated users
+### Allowing only authenticated users
 
 ```ts
 // server/api/authenticated.ts
@@ -117,7 +117,7 @@ export default defineAuthenticatedHandler(async (event) => {
 })
 ```
 
-## Allowing only admin users
+### Allowing only admin users
 
 ```ts
 // server/api/admin.ts
