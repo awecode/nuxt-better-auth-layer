@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     auth: {
       allowedDomains: '',
       allowedEmails: '',
+      adminEmails: '',
     },
     ses: {
       region: 'us-east-1',
