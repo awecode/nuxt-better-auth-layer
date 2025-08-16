@@ -26,8 +26,6 @@ export default defineEventHandler(async (event) => {
   const authenticatedOnly = parsePaths(authConfig.authenticatedOnlyApiRoutes)
   const adminOnly = parsePaths(authConfig.adminOnlyApiRoutes)
 
-  console.log(path, authenticatedOnly, adminOnly)
-
   // Admin-only APIs
   if (adminOnly?.some(prefix => matchesPrefix(path, normalizePath(prefix)))) {
     if (!session?.user || session.user.role !== 'admin') {
