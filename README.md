@@ -109,11 +109,43 @@ definePageMeta({
 })
 ```
 
+## Session Utilities
+
+Server-side utilities for working with authentication sessions and users:
+
+```ts
+import { getSession, getUser, requireAuthenticated, requireAdmin } from '#layers/auth/server/utils/session'
+
+// Get session (returns null if not authenticated)
+const session = await getSession(event)
+
+// Get user (returns undefined if not authenticated)
+const user = await getUser(event)
+
+// Throw error if not authenticated (401)
+await requireAuthenticated(event)
+
+// Throw error if not authenticated or not admin (401/403)
+await requireAdmin(event)
+```
+
+### `getSession(event)`
+Retrieves the current session from the event context. If not already cached, fetches it from the auth API.
+
+### `getUser(event)`
+Convenience function that returns the user from the session, or `undefined` if not authenticated.
+
+### `requireAuthenticated(event)`
+Throws a 401 Unauthorized error if the user is not authenticated. Use this for manual session validation.
+
+### `requireAdmin(event)`
+Throws a 401 Unauthorized error if not authenticated, or 403 Forbidden if the user doesn't have admin role.
+
 ## API Route Protection
 
 ### Route Protection via Nuxt Config
 
-You can protect multiple API routes at once using environment variables. This applies protection automatically via middleware without needing to wrap each handler individually.
+You can protect multiple API routes at once using nuxt config or environment variables. This applies protection automatically via middleware without needing to specify in each event handler.
 
 ```ts
 export default defineNuxtConfig({
@@ -133,6 +165,7 @@ export default defineNuxtConfig({
 
 #### Allowing only authenticated users
 
+Using handler wrapper:
 ```ts
 // server/api/authenticated.ts
 export default defineAuthenticatedHandler(async (event) => {
@@ -141,12 +174,33 @@ export default defineAuthenticatedHandler(async (event) => {
 })
 ```
 
+Or using manual validation:
+```ts
+// server/api/authenticated.ts
+export default defineEventHandler(async (event) => {
+  await requireAuthenticated(event)
+  const user = await getUser(event)
+  return { message: `Hello user - ${user.email}` }
+})
+```
+
 #### Allowing only admin users
 
+Using handler wrapper:
 ```ts
 // server/api/admin.ts
 export default defineAdminHandler(async (event) => {
   const { user } = event.context.auth
+  return { message: `Hello admin - ${user.email}` }
+})
+```
+
+Or using manual validation:
+```ts
+// server/api/admin.ts
+export default defineEventHandler(async (event) => {
+  await requireAdmin(event)
+  const user = await getUser(event)
   return { message: `Hello admin - ${user.email}` }
 })
 ```
