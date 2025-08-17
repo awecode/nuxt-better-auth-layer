@@ -23,6 +23,15 @@ pnpm drizzle-kit generate
 pnpm drizzle-kit migrate
 ```
 
+### Using with Tailwind
+
+Tailwind components are provided with the layer. To use them, [install Tailwind](https://tailwindcss.com/docs/installation/framework-guides/nuxt).
+And add `@source '../../../layers/';` to your `app/assets/css/main.css` to prevent the layer's tailwind classes from being purged by Tailwind's tree-shaking.
+
+```bash
+echo -e "\n@source '../../../layers/';" >> app/assets/css/main.css
+```
+
 ### Configure environment variables
 
 ```bash
