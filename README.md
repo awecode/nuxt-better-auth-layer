@@ -17,7 +17,6 @@ cp -r layers/auth/server/assets server/ 2>/dev/null || (mkdir -p server && cp -r
 An example drizzle integration with sqlite is provided in the layer in the file `server/utils/auth.ts`. You can use this as a starting point to integrate with your own database. Use the following to generate the schema and migrate the database. Change the schema file paths to match your own if necessary.
 
 ```bash
-pnpx drizzle-kit push
 npx @better-auth/cli@latest generate --config layers/auth/server/utils/auth.ts --output server/db/auth_schema.ts --yes
 echo -e "\nexport * from './auth_schema'" >> server/db/schema.ts
 pnpm drizzle-kit generate
@@ -296,7 +295,7 @@ Available template variables:
 - `{{url}}` - Magic link URL
 - `{{date}}` - Current date
 - `{{time}}` - Current time (UTC)
-- `{{useragent}}` - Browser/OS info
+- `{{useragent}}` - Short Browser/OS info like `Firefox, Linux`
 
 ## Credits
 
