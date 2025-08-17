@@ -122,10 +122,8 @@ definePageMeta({
 Server-side utilities for working with authentication sessions and users:
 
 ```ts
-import { getSession, getUser, requireAuthenticated, requireAdmin } from '#layers/auth/server/utils/session'
-
 // Get session (returns null if not authenticated)
-const session = await getSession(event)
+const session = await getAuthSession(event)
 
 // Get user (returns undefined if not authenticated)
 const user = await getUser(event)
@@ -137,7 +135,7 @@ await requireAuthenticated(event)
 await requireAdmin(event)
 ```
 
-### `getSession(event)`
+### `getAuthSession(event)`
 Retrieves the current session from the event context. If not already cached, fetches it from the auth API.
 
 ### `getUser(event)`
