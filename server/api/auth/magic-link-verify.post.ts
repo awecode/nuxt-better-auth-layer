@@ -1,4 +1,4 @@
-import { auth } from '../../utils/auth'
+import { useServerAuth } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     })
   }
   try {
-    const data = await auth.api.magicLinkVerify({
+    const data = await useServerAuth().api.magicLinkVerify({
       query: {
         token: token,
       },

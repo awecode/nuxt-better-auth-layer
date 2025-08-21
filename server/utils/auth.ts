@@ -2,11 +2,12 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 // import { createAuthMiddleware } from 'better-auth/api'
 import { magicLink, bearer, admin } from 'better-auth/plugins'
+// import { runtime } from 'std-env'
 import { useDb } from '../../../../server/utils/db'
 // import { allowDomains, allowEmails, setAdminForEmail } from '../lib/hook-utils'
 import { sendMagicLinkEmail } from './email'
 
-export const auth = betterAuth({
+export const createBetterAuth = () => betterAuth({
   emailAndPassword: {
     enabled: false,
   },
@@ -26,7 +27,7 @@ export const auth = betterAuth({
   // hooks: {
   //   before: createAuthMiddleware(async (ctx) => {
   //     allowDomains(ctx)
-  //     allowEmails(ctx)
+  //     // allowEmails(ctx)
   //   }),
   // },
   // databaseHooks: {
@@ -39,3 +40,28 @@ export const auth = betterAuth({
   //   },
   // },
 })
+
+// let _auth: ReturnType<typeof createBetterAuth>
+
+// // Used by npm run auth:schema only.
+// const isAuthSchemaCommand = process.argv.some(arg => arg.includes('server/database/schema/auth.ts'))
+// if (isAuthSchemaCommand) {
+//   _auth = createBetterAuth()
+// }
+// export const auth = _auth!
+
+// export const useServerAuth = () => {
+//   if (runtime === 'node') {
+//     if (!_auth) {
+//       _auth = createBetterAuth()
+//     }
+//     return _auth
+//   }
+//   else {
+//     return createBetterAuth()
+//   }
+// }
+
+export const useServerAuth = () => {
+  return createBetterAuth()
+}

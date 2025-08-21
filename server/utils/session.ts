@@ -1,13 +1,13 @@
 import { defineEventHandler, createError } from 'h3'
-import { auth } from './auth'
+import { useServerAuth } from './auth'
 import type { EventHandler, H3Event } from 'h3'
 
-type Session = Awaited<ReturnType<typeof auth.api.getSession>>
+type Session = Awaited<ReturnType<ReturnType<typeof useServerAuth>['api']['getSession']>>
 
 export async function getAuthSession(event: H3Event) {
   let session: Session | null = event.context.auth
   if (!session) {
-    session = await auth.api.getSession({
+    session = await useServerAuth().api.getSession({
       headers: event.headers,
     })
     event.context.auth = session

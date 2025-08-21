@@ -1,5 +1,5 @@
 import { withLeadingSlash, withoutTrailingSlash } from 'ufo'
-import { auth } from '../utils/auth'
+import { useServerAuth } from '../utils/auth'
 
 function normalizePath(path: string) {
   return withoutTrailingSlash(withLeadingSlash(path))
@@ -15,7 +15,7 @@ function matchesPrefix(path: string, prefix: string) {
 }
 
 export default defineEventHandler(async (event) => {
-  const session = await auth.api.getSession({
+  const session = await useServerAuth().api.getSession({
     headers: event.headers,
   })
 
