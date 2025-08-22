@@ -103,6 +103,7 @@
 
 <script setup lang="ts">
 const { client, fetchSession } = useAuth()
+const route = useRoute()
 
 const email = ref('')
 const isLoading = ref(false)
@@ -111,6 +112,9 @@ const errorMessage = ref('')
 const token = ref('')
 const isVerifying = ref(false)
 const { public: { auth } } = useRuntimeConfig()
+
+// Check for redirect query parameter
+const redirectTo = route.query.redirect as string
 
 const isValidEmail = computed(() => {
   const value = email.value.trim()
@@ -128,8 +132,8 @@ const signInWithMagicLink = async () => {
   errorMessage.value = ''
   const { error } = await client.signIn.magicLink({
     email: email.value,
-    callbackURL: auth.redirectUserTo,
-    newUserCallbackURL: auth.redirectNewUserTo || auth.redirectUserTo,
+    callbackURL: redirectTo || auth.redirectUserTo,
+    newUserCallbackURL: redirectTo || auth.redirectNewUserTo || auth.redirectUserTo,
     errorCallbackURL: auth.redirectErrorTo,
   })
   if (error) {
@@ -153,7 +157,7 @@ const verifyToken = async () => {
       },
     })
     await fetchSession()
-    navigateTo(auth.redirectUserTo)
+    navigateTo(redirectTo || auth.redirectUserTo)
   }
   catch (error: any) {
     errorMessage.value = getErrorMessage(error) || 'Invalid or expired token'
