@@ -11,6 +11,7 @@ export const createBetterAuth = () => betterAuth({
   emailAndPassword: {
     enabled: false,
   },
+  baseURL: getBaseURL(),
   plugins: [
     bearer(),
     admin(),
@@ -64,4 +65,17 @@ export const createBetterAuth = () => betterAuth({
 
 export const useServerAuth = () => {
   return createBetterAuth()
+}
+
+function getBaseURL() {
+  let baseURL = process.env.BETTER_AUTH_URL
+  if (!baseURL) {
+    try {
+      baseURL = getRequestURL(useEvent()).origin
+    }
+    catch {
+      // ignore
+    }
+  }
+  return baseURL
 }
