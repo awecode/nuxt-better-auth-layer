@@ -9,16 +9,28 @@ Nuxt layer providing magic link authentication with better-auth.
 ```bash
 pnpx giget gh:awecode/nuxt-better-auth-layer layers/auth
 pnpm install better-auth aws4fetch
-cp -r layers/auth/server/assets server/ 2>/dev/null || (mkdir -p server && cp -r layers/auth/server/assets server/)
+cp -r layers/auth/server/assets server/ 2>/dev/null || (mkdir -p server && cp -r layers/auth/server/assets server/) # Because nitro does not seem to copy the assets folder inside layers to build
 ```
 
-### Migrate database
+### Configure better-auth
 
-An example drizzle integration with sqlite is provided in the layer in the file `server/utils/auth.ts`. You can use this as a starting point to integrate with your own database. Use the following to generate the schema and migrate the database. Change the schema file paths to match your own if necessary.
+The layer provides a default configuration for better-auth in the file `server/utils/auth.config.ts`. You can modify this to your needs. Client configuration is in the file `composables/auth.client.config.ts`.
+
+The default configuration uses drizzle adapter and expects drizzle db instance available with `useDb()` exported from `server/utils/db.ts`. 
+
+## Migrate database
+
+Generate the better-auth schema with the following command. Change the schema file paths to match your own if necessary.
 
 ```bash
 npx @better-auth/cli@latest generate --config layers/auth/server/utils/auth.ts --output server/db/auth_schema.ts --yes
 echo -e "\nexport * from './auth_schema'" >> server/db/schema.ts
+npx eslint --fix server/db/auth_schema.ts
+```
+
+Migrate the database.
+
+```bash
 pnpm drizzle-kit generate
 pnpm drizzle-kit migrate
 ```
@@ -241,13 +253,16 @@ You can restrict authentication to specific email domains or individual email ad
 
 ```ts
 // server/utils/auth.ts
+import { createAuthMiddleware } from 'better-auth/api'
 import { allowDomains, allowEmails, setAdminForEmail } from '../lib/hook-utils'
 
 export const auth = betterAuth({
   // ...
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
+      // Only allow emails from configured domains as users
       allowDomains(ctx)
+      // Only allow configured emails as users
       allowEmails(ctx)
     }),
   },
@@ -255,6 +270,7 @@ export const auth = betterAuth({
     user: {
       create: {
         before: async (user) => {
+          // Automatically set admin role for configured emails
           return setAdminForEmail(user)
         },
       },

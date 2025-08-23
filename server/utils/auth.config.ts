@@ -26,9 +26,9 @@ export const authConfig: BetterAuthOptions = {
   }),
   // hooks: {
   //   before: createAuthMiddleware(async (ctx) => {
-  //     // Only allow emails from the domains as users
+  //     // Only allow emails from configured domains as users
   //     allowDomains(ctx)
-  //     // Only allow particular emails as users
+  //     // Only allow configured emails as users
   //     allowEmails(ctx)
   //   }),
   // },
@@ -36,7 +36,7 @@ export const authConfig: BetterAuthOptions = {
   //   user: {
   //     create: {
   //       before: async (user) => {
-  //         // Automatically set admin role for particular emails
+  //         // Automatically set admin role for configured emails
   //         return setAdminForEmail(user)
   //       },
   //     },
