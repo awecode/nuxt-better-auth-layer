@@ -1,9 +1,8 @@
 // https://github.com/atinux/nuxthub-better-auth/blob/main/app/composables/auth.ts
 import { createAuthClient } from 'better-auth/client'
-import { magicLinkClient } from 'better-auth/client/plugins'
+import { magicLinkClient, adminClient } from 'better-auth/client/plugins'
 import { defu } from 'defu'
 import type {
-  ClientOptions,
   InferSessionFromClient,
   InferUserFromClient,
 } from 'better-auth/client'
@@ -19,20 +18,22 @@ export function useAuth() {
   const url = useRequestURL()
   const headers = import.meta.server ? useRequestHeaders() : undefined
 
-  const client = createAuthClient({
-    plugins: [magicLinkClient()],
+  const clientOptions = {
+    plugins: [magicLinkClient(), adminClient()],
     baseURL: url.origin,
     fetchOptions: {
       headers,
     },
-  })
+  }
+
+  const client = createAuthClient(clientOptions)
 
   const options = defu(useRuntimeConfig().public.auth as Partial<RuntimeAuthConfig>, {
     redirectUserTo: '/',
     redirectGuestTo: '/',
   })
-  const session = useState<InferSessionFromClient<ClientOptions> | null>('auth:session', () => null)
-  const user = useState<InferUserFromClient<ClientOptions> | null>('auth:user', () => null)
+  const session = useState<InferSessionFromClient<typeof clientOptions> | null>('auth:session', () => null)
+  const user = useState<InferUserFromClient<typeof clientOptions> | null>('auth:user', () => null)
   const sessionFetching = import.meta.server ? ref(false) : useState('auth:sessionFetching', () => false)
 
   const fetchSession = async () => {
