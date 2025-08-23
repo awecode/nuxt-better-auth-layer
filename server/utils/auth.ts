@@ -42,14 +42,13 @@ export const createBetterAuth = () => betterAuth({
   // },
 })
 
-// let _auth: ReturnType<typeof createBetterAuth>
-
-// // Used by npm run auth:schema only.
-// const isAuthSchemaCommand = process.argv.some(arg => arg.includes('server/database/schema/auth.ts'))
-// if (isAuthSchemaCommand) {
-//   _auth = createBetterAuth()
-// }
-// export const auth = _auth!
+let _auth: ReturnType<typeof createBetterAuth>
+// For better-auth cli to generate schema
+const isAuthSchemaCommand = process.argv.some(arg => arg.includes('cli')) && process.argv.some(arg => arg == 'generate')
+if (isAuthSchemaCommand) {
+  _auth = createBetterAuth()
+}
+export const auth = _auth!
 
 // export const useServerAuth = () => {
 //   if (runtime === 'node') {
