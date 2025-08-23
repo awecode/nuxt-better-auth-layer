@@ -7,7 +7,7 @@ import { useDb } from '../../../../server/utils/db'
 import { sendMagicLinkEmail } from './email'
 import type { BetterAuthOptions } from 'better-auth'
 
-export const betterAuthConfig: BetterAuthOptions = {
+export const authConfig: BetterAuthOptions = {
   emailAndPassword: {
     enabled: false,
   },

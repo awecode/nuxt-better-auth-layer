@@ -1,7 +1,7 @@
 // https://github.com/atinux/nuxthub-better-auth/blob/main/app/composables/auth.ts
 import { createAuthClient } from 'better-auth/client'
-import { magicLinkClient, adminClient } from 'better-auth/client/plugins'
 import { defu } from 'defu'
+import { authClientConfig } from './auth.client.config'
 import type {
   InferSessionFromClient,
   InferUserFromClient,
@@ -19,7 +19,7 @@ export function useAuth() {
   const headers = import.meta.server ? useRequestHeaders() : undefined
 
   const clientOptions = {
-    plugins: [magicLinkClient(), adminClient()],
+    ...authClientConfig,
     baseURL: url.origin,
     fetchOptions: {
       headers,
