@@ -2,12 +2,14 @@ import { betterAuth } from 'better-auth'
 import { authConfig } from './auth.config'
 // import { runtime } from 'std-env'
 
-const authOptions = {
-  ...authConfig,
-  baseURL: getBaseURL(),
+export const createBetterAuth = () => {
+  const authOptions = {
+    ...authConfig,
+    baseURL: getBaseURL(),
+  }
+  const auth = betterAuth(authOptions)
+  return auth
 }
-
-export const createBetterAuth = () => betterAuth(authOptions)
 
 let _auth: ReturnType<typeof createBetterAuth>
 // For better-auth cli to generate schema
