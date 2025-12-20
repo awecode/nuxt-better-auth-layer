@@ -6,17 +6,17 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     auth: {
-      allowedDomains: '',
-      allowedEmails: '',
-      adminEmails: '',
-      authenticatedOnlyApiRoutes: '',
-      adminOnlyApiRoutes: '',
+      allowedDomains: process.env.NUXT_AUTH_ALLOWED_DOMAINS || '',
+      allowedEmails: process.env.NUXT_AUTH_ALLOWED_EMAILS || '',
+      adminEmails: process.env.NUXT_AUTH_ADMIN_EMAILS || '',
+      authenticatedOnlyApiRoutes: process.env.NUXT_AUTH_AUTHENTICATED_ONLY_API_ROUTES || '',
+      adminOnlyApiRoutes: process.env.NUXT_AUTH_ADMIN_ONLY_API_ROUTES || '',
     },
     ses: {
-      region: 'us-east-1',
-      accessKeyId: '',
-      secretKey: '',
-      fromEmail: '',
+      region: process.env.NUXT_SES_REGION || 'us-east-1',
+      accessKeyId: process.env.NUXT_SES_ACCESS_KEY_ID || '',
+      secretKey: process.env.NUXT_SES_SECRET_KEY || '',
+      fromEmail: process.env.NUXT_SES_FROM_EMAIL || '',
     },
     public: {
       auth: {
