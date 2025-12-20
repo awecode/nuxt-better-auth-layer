@@ -11,9 +11,8 @@
     </p>
     <hr>
     <button
-      class="text-sm text-gray-600 underline underline-offset-4 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-      @click="signOut()"
-    >
+      class="text-sm text-neutral-600 underline underline-offset-4 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white"
+      @click="signOut()">
       Sign out
     </button>
   </div>

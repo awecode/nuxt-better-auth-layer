@@ -1,10 +1,7 @@
 <template>
-  <div class="w-full max-w-md border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-    <form
-      v-if="sent"
-      class="space-y-4"
-      @submit.prevent="verifyToken"
-    >
+  <div
+    class="w-full max-w-md border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100">
+    <form v-if="sent" class="space-y-4" @submit.prevent="verifyToken">
       <h1 class="text-lg font-semibold">
         Check your email
       </h1>
@@ -15,62 +12,34 @@
         <div>
           Or enter the token received in your email.
         </div>
-        <input
-          id="token"
-          v-model="token"
-          type="text"
-          placeholder="Token"
-          autocomplete="off"
-          class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-600 dark:focus:ring-gray-700"
-        >
+        <input id="token" v-model="token" type="text" placeholder="Token" autocomplete="off"
+          class="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-neutral-900 placeholder:text-neutral-400 shadow-sm outline-none transition focus:border-neutral-400 focus:ring-2 focus:ring-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:border-neutral-600 dark:focus:ring-neutral-700">
         <button
-          class="w-full rounded-md bg-gray-900 px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gray-100 dark:text-gray-900"
-          :disabled="isVerifying || !token"
-          type="submit"
-        >
+          class="w-full rounded-md bg-neutral-900 px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-60 dark:bg-neutral-100 dark:text-neutral-900"
+          :disabled="isVerifying || !token" type="submit">
           Verify
         </button>
-        <p
-          v-if="errorMessage"
-          class="text-sm text-red-600 dark:text-red-400"
-        >
+        <p v-if="errorMessage" class="text-sm text-red-600 dark:text-red-400">
           {{ errorMessage }}
         </p>
       </div>
-      <p
-        class="text-sm"
-      >
+      <p class="text-sm">
         Did not receive an email?
-        <button
-          class="text-blue-500"
-          @click="resend"
-        >
+        <button class="text-blue-500" @click="resend">
           Resend
         </button>
       </p>
     </form>
-    <form
-      v-else
-      class="space-y-4"
-      @submit.prevent="signInWithMagicLink"
-    >
-      <h1
-        class="text-lg font-semibold"
-      >
+    <form v-else class="space-y-4" @submit.prevent="signInWithMagicLink">
+      <h1 class="text-lg font-semibold">
         Log in using email
       </h1>
 
       <div class="space-y-2">
-        <input
-          id="email"
-          v-model="email"
-          type="email"
-          placeholder="your@email.com"
-          autocomplete="email"
-          class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder:text-gray-400 shadow-sm outline-none transition focus:border-gray-400 focus:ring-2 focus:ring-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-gray-600 dark:focus:ring-gray-700"
-          :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-200 dark:border-red-500': email && !isValidEmail }"
-        >
-      <!-- <p
+        <input id="email" v-model="email" type="email" placeholder="your@email.com" autocomplete="email"
+          class="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-neutral-900 placeholder:text-neutral-400 shadow-sm outline-none transition focus:border-neutral-400 focus:ring-2 focus:ring-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:border-neutral-600 dark:focus:ring-neutral-700"
+          :class="{ 'border-red-500 focus:border-red-500 focus:ring-red-200 dark:border-red-500': email && !isValidEmail }">
+        <!-- <p
         v-if="email && !isValidEmail"
         class="text-xs text-red-600 dark:text-red-400"
       >
@@ -79,22 +48,15 @@
       </div>
 
       <button
-        class="w-full rounded-md bg-gray-900 px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-60 dark:bg-gray-100 dark:text-gray-900"
-        :disabled="isLoading || !isValidEmail"
-        type="submit"
-      >
+        class="w-full rounded-md bg-neutral-900 px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-60 dark:bg-neutral-100 dark:text-neutral-900"
+        :disabled="isLoading || !isValidEmail" type="submit">
         {{ isLoading ? 'Sending…' : 'Continue with email' }}
       </button>
 
-      <p
-        class="text-xs"
-      >
+      <p class="text-xs">
         You can use the link in your email or a one-time token to log in.
       </p>
-      <p
-        v-if="errorMessage"
-        class="text-sm text-red-600 dark:text-red-400"
-      >
+      <p v-if="errorMessage" class="text-sm text-red-600 dark:text-red-400">
         {{ errorMessage }}
       </p>
     </form>
