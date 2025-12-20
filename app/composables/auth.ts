@@ -41,15 +41,27 @@ export function useAuth() {
       return
     }
     sessionFetching.value = true
-    const { data } = await client.getSession({
-      fetchOptions: {
+    if (import.meta.server) {
+      const result = await useFetch('/api/auth/get-session', {
         headers,
-      },
-    })
-    session.value = data?.session || null
-    user.value = data?.user || null
-    sessionFetching.value = false
-    return data
+      })
+      const data = result.data.value
+      session.value = data?.session || null
+      user.value = data?.user || null
+      sessionFetching.value = false
+      return data
+    }
+    else {
+      const { data } = await client.getSession({
+        fetchOptions: {
+          headers,
+        },
+      })
+      session.value = data?.session || null
+      user.value = data?.user || null
+      sessionFetching.value = false
+      return data
+    }
   }
 
   const signOut = async ({ redirectTo }: { redirectTo?: RouteLocationRaw } = {}) => {
