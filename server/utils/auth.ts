@@ -34,7 +34,7 @@ export const useServerAuth = () => {
 }
 
 function getBaseURL() {
-  let baseURL = process.env.BETTER_AUTH_URL
+  let baseURL = process.env.BETTER_AUTH_URL || process.env.NUXT_PUBLIC_BASE_URL
   if (!baseURL) {
     try {
       baseURL = getRequestURL(useEvent()).origin
