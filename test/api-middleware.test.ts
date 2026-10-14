@@ -69,6 +69,22 @@ describe('auth API middleware', () => {
     expect(getSession).not.toHaveBeenCalled()
   })
 
+  it('rejects the exact protected path when a query string is present', async () => {
+    await expect(middleware(request('/api/private?x=1'))).rejects.toMatchObject({
+      statusCode: 401,
+    })
+    await expect(middleware(request('/api/admin?x=1'))).rejects.toMatchObject({
+      statusCode: 401,
+    })
+    expect(getSession).not.toHaveBeenCalled()
+  })
+
+  it('does not treat a longer name plus a query as protected', async () => {
+    const event = request('/api/private-notes?x=1', sessionCookie)
+    await middleware(event)
+    expect(getSession).not.toHaveBeenCalled()
+  })
+
   it('rejects a protected path with no session cookie', async () => {
     await expect(middleware(request('/api/private/profile'))).rejects.toMatchObject({
       statusCode: 401,

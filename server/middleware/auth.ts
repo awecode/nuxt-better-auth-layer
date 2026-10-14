@@ -7,6 +7,11 @@ function normalizePath(path: string) {
   return withoutTrailingSlash(withLeadingSlash(path))
 }
 
+function requestPath(path: string) {
+  const pathname = (path.split('?')[0] ?? path).split('#')[0] ?? path
+  return normalizePath(pathname)
+}
+
 function parsePaths(raw: string): string[] {
   return raw?.split(',').map(p => p.trim()).filter(Boolean)
 }
@@ -21,7 +26,7 @@ function matchesAnyPrefix(path: string, prefixes: string[]) {
 }
 
 export default defineEventHandler(async (event) => {
-  const path = normalizePath(event.path)
+  const path = requestPath(event.path)
   const config = useRuntimeConfig()
   const authConfig = config.auth
   const authenticatedOnly = parsePaths(authConfig.authenticatedOnlyApiRoutes)
