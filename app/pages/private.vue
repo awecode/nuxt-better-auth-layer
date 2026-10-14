@@ -6,8 +6,8 @@
       Only authorized users can access this page.
     </p>
     <hr>
-    <p>
-      {{ session }}
+    <p v-if="user">
+      Signed in as {{ user.email }}.
     </p>
     <hr>
     <button
@@ -27,5 +27,5 @@ useSeoMeta({
   robots: 'noindex, nofollow',
 })
 
-const { session, signOut } = useAuth()
+const { user, signOut } = useAuth()
 </script>
