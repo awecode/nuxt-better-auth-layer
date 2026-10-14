@@ -1,3 +1,5 @@
+import { getSessionCookie } from 'better-auth/cookies'
+
 export default defineNuxtPlugin({
   name: 'better-auth-fetch-plugin',
   enforce: 'pre',
@@ -5,6 +7,9 @@ export default defineNuxtPlugin({
     // Flag if request is cached
     nuxtApp.payload.isCached = Boolean(useRequestEvent()?.context.cache)
     if (nuxtApp.payload.serverRendered && !nuxtApp.payload.prerenderedAt && !nuxtApp.payload.isCached) {
+      const event = useRequestEvent()
+      if (!event || getSessionCookie(event.headers) === null)
+        return
       await useAuth().fetchSession()
     }
   },

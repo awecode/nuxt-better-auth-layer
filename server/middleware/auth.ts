@@ -1,3 +1,4 @@
+import { getSessionCookie } from 'better-auth/cookies'
 import { withLeadingSlash, withoutTrailingSlash } from 'ufo'
 import { safeInternalPath } from '../../shared/safeInternalPath'
 import { useServerAuth } from '../utils/auth'
@@ -16,9 +17,13 @@ function matchesPrefix(path: string, prefix: string) {
 }
 
 export default defineEventHandler(async (event) => {
-  const session = await useServerAuth().api.getSession({
-    headers: event.headers,
-  })
+  let session: Awaited<ReturnType<ReturnType<typeof useServerAuth>['api']['getSession']>> | null = null
+
+  if (getSessionCookie(event.headers) !== null) {
+    session = await useServerAuth().api.getSession({
+      headers: event.headers,
+    })
+  }
 
   event.context.auth = session
 

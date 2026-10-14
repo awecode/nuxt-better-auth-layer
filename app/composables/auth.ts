@@ -1,4 +1,5 @@
 // https://github.com/atinux/nuxthub-better-auth/blob/main/app/composables/auth.ts
+import { getSessionCookie } from 'better-auth/cookies'
 import { createAuthClient } from 'better-auth/client'
 import { defu } from 'defu'
 import { authClientConfig } from './auth.client.config'
@@ -42,6 +43,14 @@ export function useAuth() {
     }
     sessionFetching.value = true
     if (import.meta.server) {
+      const event = useRequestEvent()
+      if (!event || getSessionCookie(event.headers) === null) {
+        session.value = null
+        user.value = null
+        sessionFetching.value = false
+        return null
+      }
+
       const result = await useFetch('/api/auth/get-session', {
         headers,
       })
