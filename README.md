@@ -237,7 +237,7 @@ export default defineEventHandler(async (event) => {
 
 ## Bearer Token Authentication
 
-For web applications, use the default cookie-based authentication. Bearer tokens are needed for mobile apps or other clients that can't use cookies. Use the token received during login as the bearer token.
+For web applications, use the default cookie-based authentication. Bearer tokens are needed for mobile apps or other clients that can't use cookies. The layer's `customSession` plugin omits `session.token` from `GET /api/auth/get-session` and from `fetchSession()` return values, so browser code should not rely on the session JSON for a bearer secret. Mobile clients should read the token from the login response (Better Auth bearer plugin `set-auth-token` header) and store it securely.
 
 ```bash
 # Example API call with Bearer token

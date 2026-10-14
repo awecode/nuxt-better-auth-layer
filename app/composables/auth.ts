@@ -3,7 +3,7 @@ import { getSessionCookie } from 'better-auth/cookies'
 import { createAuthClient } from 'better-auth/client'
 import { defu } from 'defu'
 import { authClientConfig } from './auth.client.config'
-import { sessionForClient } from '#layers/auth/shared/sessionForClient'
+import { authDataForClient } from '#layers/auth/shared/sessionForClient'
 import type {
   InferSessionFromClient,
   InferUserFromClient,
@@ -56,9 +56,9 @@ export function useAuth() {
       // const result = await useFetch('/api/auth/get-session', { headers })
       // const data = result.data.value
       const { getAuthSession } = await import('#layers/auth/server/utils/session')
-      const data = await getAuthSession(event)
+      const data = authDataForClient(await getAuthSession(event))
 
-      session.value = sessionForClient(data?.session) as typeof session.value
+      session.value = (data?.session ?? null) as typeof session.value
       user.value = (data?.user ?? null) as typeof user.value
       sessionFetching.value = false
       return data
@@ -69,10 +69,12 @@ export function useAuth() {
           headers,
         },
       })
-      session.value = sessionForClient(data?.session) as typeof session.value
-      user.value = data?.user || null
+      const safe = authDataForClient(data)
+
+      session.value = (safe?.session ?? null) as typeof session.value
+      user.value = safe?.user || null
       sessionFetching.value = false
-      return data
+      return safe
     }
   }
 

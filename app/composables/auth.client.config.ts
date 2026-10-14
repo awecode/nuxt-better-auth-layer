@@ -1,5 +1,5 @@
-import { magicLinkClient, adminClient } from 'better-auth/client/plugins'
+import { magicLinkClient, adminClient, customSessionClient } from 'better-auth/client/plugins'
 
 export const authClientConfig = {
-  plugins: [magicLinkClient(), adminClient()],
+  plugins: [magicLinkClient(), adminClient(), customSessionClient()],
 }

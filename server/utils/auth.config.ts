@@ -1,5 +1,6 @@
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { magicLink, bearer, admin } from 'better-auth/plugins'
+import { magicLink, bearer, admin, customSession } from 'better-auth/plugins'
+import { sessionForClient } from '../../shared/sessionForClient'
 // import { createAuthMiddleware } from 'better-auth/api'
 // import { allowDomains, allowEmails, setAdminForEmail } from '../lib/hook-utils'
 import { useDb } from '../../../../server/utils/db'
@@ -27,6 +28,11 @@ export function createAuthConfig(): BetterAuthOptions {
           await sendMagicLinkEmail(email, token, confirmUrl, request)
         },
       }),
+      // Last plugin: replaces GET /get-session JSON so browsers never see session.token.
+      customSession(async ({ user, session }) => ({
+        user,
+        session: sessionForClient(session),
+      })),
     ],
     database: drizzleAdapter(useDb(), {
       provider: 'pg',
