@@ -5,6 +5,7 @@ import { magicLink, bearer, admin } from 'better-auth/plugins'
 import { useDb } from '../../../../server/utils/db'
 
 import { sendMagicLinkEmail } from './email'
+import { toMagicLinkConfirmUrl } from './magicLinkConfirmUrl'
 import type { BetterAuthOptions } from 'better-auth'
 
 export function createAuthConfig(): BetterAuthOptions {
@@ -17,7 +18,11 @@ export function createAuthConfig(): BetterAuthOptions {
       admin(),
       magicLink({
         sendMagicLink: async ({ email, token, url }, request) => {
-          await sendMagicLinkEmail(email, token, url, request)
+          // Do not email the raw /magic-link/verify GET URL. Scanners prefetch it
+          // and burn the one-time token. Paste-token login still works because
+          // the plain token in the email body is not fetched.
+          const confirmUrl = toMagicLinkConfirmUrl(url, token)
+          await sendMagicLinkEmail(email, token, confirmUrl, request)
         },
       }),
     ],
