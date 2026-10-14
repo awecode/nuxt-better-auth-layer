@@ -64,6 +64,8 @@
 </template>
 
 <script setup lang="ts">
+import { safeInternalPath } from '#layers/auth/shared/safeInternalPath'
+
 const { client, fetchSession } = useAuth()
 const route = useRoute()
 
@@ -75,8 +77,12 @@ const token = ref('')
 const isVerifying = ref(false)
 const { public: { auth } } = useRuntimeConfig()
 
-// Check for redirect query parameter
-const redirectTo = route.query.redirect as string
+const redirectTo = computed(() => {
+  const value = route.query.redirect
+  if (typeof value !== 'string')
+    return ''
+  return safeInternalPath(value, '')
+})
 
 const isValidEmail = computed(() => {
   const value = email.value.trim()
@@ -94,8 +100,8 @@ const signInWithMagicLink = async () => {
   errorMessage.value = ''
   const { error } = await client.signIn.magicLink({
     email: email.value,
-    callbackURL: redirectTo || auth.redirectUserTo,
-    newUserCallbackURL: redirectTo || auth.redirectNewUserTo || auth.redirectUserTo,
+    callbackURL: redirectTo.value || auth.redirectUserTo,
+    newUserCallbackURL: redirectTo.value || auth.redirectNewUserTo || auth.redirectUserTo,
     errorCallbackURL: auth.redirectErrorTo,
   })
   if (error) {
@@ -119,7 +125,7 @@ const verifyToken = async () => {
       },
     })
     await fetchSession()
-    navigateTo(redirectTo || auth.redirectUserTo)
+    navigateTo(redirectTo.value || auth.redirectUserTo)
   }
   catch (error: any) {
     errorMessage.value = getErrorMessage(error) || 'Invalid or expired token'

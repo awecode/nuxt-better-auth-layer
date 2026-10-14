@@ -1,4 +1,5 @@
 import { withLeadingSlash, withoutTrailingSlash } from 'ufo'
+import { safeInternalPath } from '../../shared/safeInternalPath'
 import { useServerAuth } from '../utils/auth'
 
 function normalizePath(path: string) {
@@ -32,7 +33,7 @@ export default defineEventHandler(async (event) => {
     if (!session?.user) {
       // Get the referring page from the Referer header
       const referer = getHeader(event, 'referer') || getHeader(event, 'referrer')
-      const returnPath = referer?.startsWith('/') ? referer : config.public.auth.redirectUserTo
+      const returnPath = safeInternalPath(referer, config.public.auth.redirectUserTo)
       const redirectPath = `${config.public.auth.redirectGuestTo}?redirect=${encodeURIComponent(returnPath)}`
       throw createError({
         statusCode: 401,
@@ -53,7 +54,7 @@ export default defineEventHandler(async (event) => {
     if (!session?.user) {
       // Get the referring page from the Referer header
       const referer = getHeader(event, 'referer') || getHeader(event, 'referrer')
-      const returnPath = referer?.startsWith('/') ? referer : config.public.auth.redirectUserTo
+      const returnPath = safeInternalPath(referer, config.public.auth.redirectUserTo)
       const redirectPath = `${config.public.auth.redirectGuestTo}?redirect=${encodeURIComponent(returnPath)}`
       throw createError({
         statusCode: 401,
