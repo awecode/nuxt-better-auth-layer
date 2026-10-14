@@ -3,9 +3,12 @@ import type { MiddlewareContext, MiddlewareOptions, User } from 'better-auth'
 
 type Ctx = MiddlewareContext<MiddlewareOptions>
 
-const { auth } = useRuntimeConfig()
+function authConfig() {
+  return useRuntimeConfig().auth
+}
 
 export const allowDomains = (ctx: Ctx) => {
+  const auth = authConfig()
   const signupPaths = ['/sign-up/email', '/sign-in/magic-link']
   if (signupPaths.includes(ctx.path)) {
     const allowedDomains = auth.allowedDomains?.split(',') || []
@@ -18,6 +21,7 @@ export const allowDomains = (ctx: Ctx) => {
 }
 
 export const allowEmails = (ctx: Ctx) => {
+  const auth = authConfig()
   const signupPaths = ['/sign-up/email', '/sign-in/magic-link']
   if (signupPaths.includes(ctx.path)) {
     const allowedEmails = auth.allowedEmails?.split(',') || []
@@ -35,8 +39,7 @@ export const allowEmails = (ctx: Ctx) => {
  * @returns User object with admin role set if email is in NUXT_AUTH_ADMIN_EMAILS environment variable
  */
 export const setAdminForEmail = (user: User) => {
-  const config = useRuntimeConfig()
-  const adminEmails = config.auth.adminEmails?.split(',') || []
+  const adminEmails = authConfig().adminEmails?.split(',') || []
   if (adminEmails.includes(user.email)) {
     return {
       data: {

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const runtimeAuth = {
   allowedDomains: '',
@@ -9,6 +9,10 @@ const runtimeAuth = {
 vi.stubGlobal('useRuntimeConfig', () => ({ auth: runtimeAuth }))
 
 const { allowDomains, allowEmails, setAdminForEmail } = await import('../server/lib/hook-utils')
+
+afterEach(() => {
+  vi.stubGlobal('useRuntimeConfig', () => ({ auth: runtimeAuth }))
+})
 
 function signupContext(path: string, email?: string) {
   return {
@@ -41,6 +45,19 @@ describe('allowDomains', () => {
   it('allows every domain when the list is *', () => {
     runtimeAuth.allowedDomains = '*'
     expect(() => allowDomains(signupContext('/sign-in/magic-link', 'a@anywhere.test'))).not.toThrow()
+  })
+
+  it('reads the allowlist when the hook runs', () => {
+    vi.stubGlobal('useRuntimeConfig', () => ({
+      auth: {
+        allowedDomains: 'later.test',
+        allowedEmails: '',
+        adminEmails: '',
+      },
+    }))
+    expect(() => allowDomains(signupContext('/sign-in/magic-link', 'a@later.test'))).not.toThrow()
+    expect(() => allowDomains(signupContext('/sign-in/magic-link', 'a@example.com')))
+      .toThrow('You are not authorized to log in with this email.')
   })
 })
 
