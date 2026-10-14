@@ -36,6 +36,7 @@
 </template>
 
 <script setup lang="ts">
+import { parseMagicLinkConfirmHash } from '#layers/auth/shared/magicLinkConfirmHash'
 import { safeInternalPath } from '#layers/auth/shared/safeInternalPath'
 
 definePageMeta({
@@ -47,25 +48,30 @@ useSeoMeta({
   robots: 'noindex, nofollow',
 })
 
-const route = useRoute()
 const { fetchSession } = useAuth()
 const { public: { auth } } = useRuntimeConfig()
 
-const token = computed(() => {
-  const value = route.query.token
-  return typeof value === 'string' ? value.trim() : ''
-})
-
-const redirectTo = computed(() =>
-  safeInternalPath(route.query.callbackURL ?? route.query.redirect, auth.redirectUserTo),
-)
-
+const token = ref('')
+const callbackURL = ref<string | null>(null)
 const errorMessage = ref('')
 const isVerifying = ref(false)
 
-if (!token.value) {
-  errorMessage.value = 'This login link is missing a token. Request a new link from the login page.'
-}
+const redirectTo = computed(() =>
+  safeInternalPath(callbackURL.value, auth.redirectUserTo),
+)
+
+onMounted(() => {
+  const parsed = parseMagicLinkConfirmHash(window.location.hash)
+  token.value = parsed.token
+  callbackURL.value = parsed.callbackURL
+  if (window.location.hash) {
+    const clean = new URL(window.location.href)
+    clean.hash = ''
+    history.replaceState(history.state, '', `${clean.pathname}${clean.search}`)
+  }
+  if (!token.value)
+    errorMessage.value = 'This login link is missing a token. Request a new link from the login page.'
+})
 
 const confirmLogin = async () => {
   if (!token.value || isVerifying.value)

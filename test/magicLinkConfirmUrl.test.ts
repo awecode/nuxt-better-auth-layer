@@ -1,32 +1,48 @@
 import { describe, expect, it } from 'vitest'
-import { toMagicLinkConfirmUrl } from '../server/utils/magicLinkConfirmUrl'
+import { parseMagicLinkConfirmHash, toMagicLinkConfirmUrl } from '../server/utils/magicLinkConfirmUrl'
 import { safeInternalPath } from '../shared/safeInternalPath'
 
+function fragment(url: string) {
+  return new URLSearchParams(new URL(url).hash.slice(1))
+}
+
 describe('toMagicLinkConfirmUrl', () => {
-  it('rewrites the one-shot verify URL into a confirm page on the same origin', () => {
-    const confirm = new URL(toMagicLinkConfirmUrl(
+  it('puts the token in the fragment, not the query string', () => {
+    const raw = toMagicLinkConfirmUrl(
       'https://example.com/api/auth/magic-link/verify?token=raw&callbackURL=%2Fadmin&newUserCallbackURL=%2Fwelcome&errorCallbackURL=%2Fauth%2Ferror',
       'plain-token',
-    ))
+    )
+    const confirm = new URL(raw)
+    const hash = fragment(raw)
 
     expect(confirm.origin).toBe('https://example.com')
     expect(confirm.pathname).toBe('/auth/confirm')
-    expect(confirm.searchParams.get('token')).toBe('plain-token')
-    expect(confirm.searchParams.get('callbackURL')).toBe('/admin')
-    expect(confirm.searchParams.get('newUserCallbackURL')).toBe('/welcome')
-    expect(confirm.searchParams.get('errorCallbackURL')).toBe('/auth/error')
-    expect(confirm.pathname).not.toContain('verify')
+    expect(confirm.search).toBe('')
+    expect(`${confirm.pathname}${confirm.search}`).not.toContain('plain-token')
+    expect(hash.get('token')).toBe('plain-token')
+    expect(hash.get('callbackURL')).toBe('/admin')
+    expect(hash.get('newUserCallbackURL')).toBe('/welcome')
+    expect(hash.get('errorCallbackURL')).toBe('/auth/error')
   })
 
   it('omits callback params that the verify URL does not have', () => {
-    const confirm = new URL(toMagicLinkConfirmUrl(
+    const hash = fragment(toMagicLinkConfirmUrl(
       'https://example.com/api/auth/magic-link/verify?token=raw',
       'plain-token',
     ))
 
-    expect(confirm.searchParams.get('token')).toBe('plain-token')
-    expect(confirm.searchParams.get('callbackURL')).toBeNull()
-    expect(confirm.searchParams.get('errorCallbackURL')).toBeNull()
+    expect(hash.get('token')).toBe('plain-token')
+    expect(hash.get('callbackURL')).toBeNull()
+    expect(hash.get('errorCallbackURL')).toBeNull()
+  })
+})
+
+describe('parseMagicLinkConfirmHash', () => {
+  it('reads the token and callback from the fragment', () => {
+    expect(parseMagicLinkConfirmHash('#token=plain-token&callbackURL=%2Fadmin')).toEqual({
+      token: 'plain-token',
+      callbackURL: '/admin',
+    })
   })
 })
 
