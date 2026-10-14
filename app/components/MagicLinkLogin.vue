@@ -15,7 +15,7 @@
         <input id="token" v-model="token" type="text" placeholder="Token" autocomplete="off"
           class="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-neutral-900 placeholder:text-neutral-400 shadow-sm outline-none transition focus:border-neutral-400 focus:ring-2 focus:ring-neutral-200 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100 dark:focus:border-neutral-600 dark:focus:ring-neutral-700">
         <button
-          class="w-full rounded-md bg-neutral-900 px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-60 dark:bg-neutral-100 dark:text-neutral-900"
+          class="w-full rounded-md bg-neutral-900 px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-70 dark:bg-neutral-100 dark:text-neutral-900"
           :disabled="isVerifying || !token" type="submit">
           Verify
         </button>
@@ -48,7 +48,7 @@
       </div>
 
       <button
-        class="w-full rounded-md bg-neutral-900 px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-60 dark:bg-neutral-100 dark:text-neutral-900"
+        class="w-full rounded-md bg-neutral-900 px-4 py-2 text-white transition disabled:cursor-not-allowed disabled:opacity-70 dark:bg-neutral-100 dark:text-neutral-900"
         :disabled="isLoading || !isValidEmail" type="submit">
         {{ isLoading ? 'Sending…' : 'Continue with email' }}
       </button>

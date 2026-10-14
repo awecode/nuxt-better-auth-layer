@@ -84,11 +84,11 @@ describe('sendMagicLinkEmail', () => {
 
   it('renders the template and sends html plus plain text', async () => {
     ses.secretKey = 'secret'
-    const request = new Request('https://example.com', {
-      headers: {
-        'user-agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0',
-      },
-    })
+    const request = {
+      getHeader: (name: string) => name.toLowerCase() === 'user-agent'
+        ? 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0'
+        : null,
+    } as Parameters<typeof sendMagicLinkEmail>[3]
 
     await sendMagicLinkEmail('a@example.com', 'tok-1', 'https://example.com/verify', request)
 

@@ -1,3 +1,4 @@
+import type { GenericEndpointContext } from 'better-auth'
 import { sendSesEmail } from './ses'
 
 function htmlToText(html: string) {
@@ -65,7 +66,7 @@ export function getUserAgentInfo(ua: string): string {
   return browser || os || 'Unknown'
 }
 
-export const sendMagicLinkEmail = async (email: string, token: string, url: string, request?: Request) => {
+export const sendMagicLinkEmail = async (email: string, token: string, url: string, request?: GenericEndpointContext) => {
   const { ses } = useRuntimeConfig()
 
   let backend
@@ -98,7 +99,7 @@ export const sendMagicLinkEmail = async (email: string, token: string, url: stri
     timeZoneName: 'short',
   })
 
-  const useragent = getUserAgentInfo(request?.headers.get('user-agent') || '')
+  const useragent = getUserAgentInfo(request?.getHeader('user-agent') || '')
   const magicLinkTemplate = await useStorage<string>('assets:server').getItem(`magic-link.html`)
   if (!magicLinkTemplate) {
     throw new Error('Magic link email template not found')
