@@ -16,7 +16,23 @@ function matchesPrefix(path: string, prefix: string) {
   return path.startsWith(prefix + '/')
 }
 
+function matchesAnyPrefix(path: string, prefixes: string[]) {
+  return prefixes.some(prefix => matchesPrefix(path, normalizePath(prefix)))
+}
+
 export default defineEventHandler(async (event) => {
+  const path = normalizePath(event.path)
+  const config = useRuntimeConfig()
+  const authConfig = config.auth
+  const authenticatedOnly = parsePaths(authConfig.authenticatedOnlyApiRoutes)
+  const adminOnly = parsePaths(authConfig.adminOnlyApiRoutes)
+
+  const isAdminRoute = matchesAnyPrefix(path, adminOnly)
+  const isAuthenticatedRoute = matchesAnyPrefix(path, authenticatedOnly)
+
+  if (!isAdminRoute && !isAuthenticatedRoute)
+    return
+
   let session: Awaited<ReturnType<ReturnType<typeof useServerAuth>['api']['getSession']>> | null = null
 
   if (getSessionCookie(event.headers) !== null) {
@@ -27,14 +43,8 @@ export default defineEventHandler(async (event) => {
 
   event.context.auth = session
 
-  const path = normalizePath(event.path)
-  const config = useRuntimeConfig()
-  const authConfig = config.auth
-  const authenticatedOnly = parsePaths(authConfig.authenticatedOnlyApiRoutes)
-  const adminOnly = parsePaths(authConfig.adminOnlyApiRoutes)
-
   // Admin-only APIs
-  if (adminOnly?.some(prefix => matchesPrefix(path, normalizePath(prefix)))) {
+  if (isAdminRoute) {
     if (!session?.user) {
       // Get the referring page from the Referer header
       const referer = getHeader(event, 'referer') || getHeader(event, 'referrer')
@@ -54,8 +64,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  // Authenticated-only APIs
-  if (authenticatedOnly?.some(prefix => matchesPrefix(path, normalizePath(prefix)))) {
+  if (isAuthenticatedRoute) {
     if (!session?.user) {
       // Get the referring page from the Referer header
       const referer = getHeader(event, 'referer') || getHeader(event, 'referrer')
