@@ -1,11 +1,12 @@
 import { betterAuth } from 'better-auth'
+import { getAuthBaseURL } from './authBaseUrl'
 import { createAuthConfig } from './auth.config'
 // import { runtime } from 'std-env'
 
 function getAuthOptions() {
   return {
     ...createAuthConfig(),
-    baseURL: getBaseURL(),
+    baseURL: getAuthBaseURL(),
   }
 }
 
@@ -35,15 +36,3 @@ export const useServerAuth = () => {
   return createBetterAuth()
 }
 
-function getBaseURL() {
-  let baseURL = process.env.BETTER_AUTH_URL || process.env.NUXT_PUBLIC_BASE_URL
-  if (!baseURL) {
-    try {
-      baseURL = getRequestURL(useEvent()).origin
-    }
-    catch {
-      // ignore
-    }
-  }
-  return baseURL
-}
