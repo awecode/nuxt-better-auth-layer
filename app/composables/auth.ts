@@ -51,12 +51,14 @@ export function useAuth() {
         return null
       }
 
-      const result = await useFetch('/api/auth/get-session', {
-        headers,
-      })
-      const data = result.data.value
-      session.value = data?.session || null
-      user.value = data?.user || null
+      // HTTP fallback if in-process reads break on Workers:
+      // const result = await useFetch('/api/auth/get-session', { headers })
+      // const data = result.data.value
+      const { getAuthSession } = await import('#layers/auth/server/utils/session')
+      const data = await getAuthSession(event)
+
+      session.value = data?.session ?? null
+      user.value = (data?.user ?? null) as typeof user.value
       sessionFetching.value = false
       return data
     }
