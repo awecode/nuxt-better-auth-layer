@@ -1,9 +1,9 @@
 import { useServerAuth } from '../../utils/auth'
-import { magicLinkSignInRequest } from '../../utils/magicLinkSendRequest'
+import { magicLinkSignInRequest, readMagicLinkSendEmail } from '../../utils/magicLinkSendRequest'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-  const email = body?.email
+  const email = readMagicLinkSendEmail(body)
   if (!email) {
     throw createError({
       statusCode: 400,

@@ -1,5 +1,20 @@
 import { describe, expect, it } from 'vitest'
-import { magicLinkSignInRequest } from '../server/utils/magicLinkSendRequest'
+import { magicLinkSignInRequest, readMagicLinkSendEmail } from '../server/utils/magicLinkSendRequest'
+
+describe('readMagicLinkSendEmail', () => {
+  it('accepts a non-empty string and trims whitespace', () => {
+    expect(readMagicLinkSendEmail({ email: '  a@example.com  ' })).toBe('a@example.com')
+  })
+
+  it('rejects missing, empty, or non-string email', () => {
+    expect(readMagicLinkSendEmail(null)).toBeNull()
+    expect(readMagicLinkSendEmail({})).toBeNull()
+    expect(readMagicLinkSendEmail({ email: '' })).toBeNull()
+    expect(readMagicLinkSendEmail({ email: '   ' })).toBeNull()
+    expect(readMagicLinkSendEmail({ email: ['a@example.com'] })).toBeNull()
+    expect(readMagicLinkSendEmail({ email: 1 })).toBeNull()
+  })
+})
 
 describe('magicLinkSignInRequest', () => {
   it('sends the email through the rate-limited sign-in route', async () => {

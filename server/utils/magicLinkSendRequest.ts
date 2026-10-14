@@ -1,3 +1,15 @@
+export function readMagicLinkSendEmail(body: unknown): string | null {
+  const email = (body as { email?: unknown } | null)?.email
+  if (typeof email !== 'string')
+    return null
+
+  const trimmed = email.trim()
+  if (!trimmed)
+    return null
+
+  return trimmed
+}
+
 /**
  * Rebuild a magic-link-send request as Better Auth's sign-in route.
  * That route is what the HTTP rate limiter counts.
