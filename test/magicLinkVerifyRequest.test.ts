@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assertMagicLinkVerifyOrigin, magicLinkVerifyCookies, MagicLinkVerifyOriginError } from '../server/utils/magicLinkVerifyRequest'
+import { assertMagicLinkVerifyOrigin, isMagicLinkAutoVerifyPath, magicLinkVerifyCookies, MagicLinkVerifyOriginError } from '../server/utils/magicLinkVerifyRequest'
 
 const baseURL = 'https://app.example/auth'
 
@@ -43,6 +43,20 @@ describe('assertMagicLinkVerifyOrigin', () => {
 
   it('rejects a request with no origin or referer', () => {
     expect(() => assertMagicLinkVerifyOrigin(new Headers(), baseURL)).toThrow(MagicLinkVerifyOriginError)
+  })
+})
+
+describe('isMagicLinkAutoVerifyPath', () => {
+  it('matches the one-shot verify route', () => {
+    expect(isMagicLinkAutoVerifyPath('/api/auth/magic-link/verify')).toBe(true)
+    expect(isMagicLinkAutoVerifyPath('/api/auth/magic-link/verify/')).toBe(true)
+    expect(isMagicLinkAutoVerifyPath('/api/auth/magic-link%2Fverify')).toBe(true)
+  })
+
+  it('leaves the confirm POST and the send route alone', () => {
+    expect(isMagicLinkAutoVerifyPath('/api/auth/magic-link-verify')).toBe(false)
+    expect(isMagicLinkAutoVerifyPath('/api/auth/sign-in/magic-link')).toBe(false)
+    expect(isMagicLinkAutoVerifyPath('/api/auth/magic-link/verify-extra')).toBe(false)
   })
 })
 

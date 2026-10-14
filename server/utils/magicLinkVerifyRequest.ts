@@ -32,6 +32,23 @@ export function assertMagicLinkVerifyOrigin(headers: Headers, baseURL: string) {
     throw new MagicLinkVerifyOriginError()
 }
 
+/**
+ * Better Auth's GET /magic-link/verify sets a session cookie with no origin check.
+ * Sign-in goes through the confirm page and POST /magic-link-verify instead.
+ */
+export function isMagicLinkAutoVerifyPath(pathname: string) {
+  const pathOnly = pathname.split('?')[0] || pathname
+  let decoded = pathOnly
+  try {
+    decoded = decodeURIComponent(pathOnly)
+  }
+  catch {
+    // Keep the raw path when the encoding is invalid.
+  }
+  const path = decoded.replace(/\/+$/, '') || '/'
+  return path.endsWith('/magic-link/verify')
+}
+
 /** Session cookies from Better Auth. The JSON body holds the bearer token and must not be forwarded. */
 export function magicLinkVerifyCookies(response: Response) {
   if (typeof response.headers.getSetCookie === 'function')
