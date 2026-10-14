@@ -11,4 +11,8 @@
 definePageMeta({
   auth: false,
 })
+
+useSeoMeta({
+  robots: 'noindex, nofollow',
+})
 </script>

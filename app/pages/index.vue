@@ -32,5 +32,9 @@ definePageMeta({
   auth: false,
 })
 
+useSeoMeta({
+  robots: 'noindex, nofollow',
+})
+
 const { user, signOut } = useAuth()
 </script>
