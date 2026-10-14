@@ -17,6 +17,8 @@ export function createAuthConfig(): BetterAuthOptions {
       bearer(),
       admin(),
       magicLink({
+        // Store a SHA-256 hash. The email still receives the plaintext token.
+        storeToken: 'hashed',
         sendMagicLink: async ({ email, token, url }, request) => {
           // Do not email the raw /magic-link/verify GET URL. Scanners prefetch it
           // and burn the one-time token. Paste-token login still works because
