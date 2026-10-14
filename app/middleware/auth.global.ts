@@ -52,10 +52,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // If not authenticated, redirect
   if (!loggedIn.value && (to.meta?.auth === true || to.meta?.auth?.only === 'user' || (to.meta?.auth === undefined && options.authRequiredByDefault))) {
     // Avoid infinite redirect
-    if (to.path === redirectGuestTo) {
+    const loginPath = typeof redirectGuestTo === 'string' ? redirectGuestTo : '/login'
+    if (to.path === loginPath) {
       return
     }
-    // TODO Add intended destination to query param so that users can be redirected back to the page they were trying to access
-    return navigateTo(redirectGuestTo)
+    return navigateTo({
+      path: loginPath,
+      query: { redirect: to.fullPath },
+    })
   }
 })

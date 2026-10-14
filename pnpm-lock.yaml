@@ -11,6 +11,9 @@ importers:
       better-auth:
         specifier: ^1.7.7
         version: 1.7.7(vitest@3.2.7)
+      defu:
+        specifier: ^6.1.7
+        version: 6.1.7
       ufo:
         specifier: ^1.6.4
         version: 1.6.4
