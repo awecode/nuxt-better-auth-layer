@@ -6,15 +6,29 @@ Nuxt layer providing magic link authentication with better-auth.
 
 ### Install layer and dependencies
 
+```ts
+export default defineNuxtConfig({
+  extends: ['github:awecode/nuxt-better-auth-layer'],
+})
+```
+
+```bash
+pnpm install better-auth aws4fetch
+```
+
+`server/utils/auth.config.ts` imports `useDb` from the app root with Nuxt's `~~` alias (`~~/server/utils/db`), so the same layer works from GitHub and from a local `layers/auth` folder.
+
+To vendor a copy you can edit in place:
+
 ```bash
 pnpx giget gh:awecode/nuxt-better-auth-layer layers/auth
-pnpm install better-auth aws4fetch
-cp -r layers/auth/server/assets server/ 2>/dev/null || (mkdir -p server && cp -r layers/auth/server/assets server/) # Because nitro does not seem to copy the assets folder inside layers to build
 ```
+
+Nuxt registers `layers/*` on its own.
 
 ### Configure better-auth
 
-The layer provides a default configuration for better-auth in the file `server/utils/auth.config.ts`. You can modify this to your needs. Client configuration is in the file `composables/auth.client.config.ts`.
+The layer provides a default configuration for better-auth in `server/utils/auth.config.ts`. Edit that file in a local `layers/auth` copy when you need to change it. Client configuration is in `composables/auth.client.config.ts`.
 
 The default configuration uses drizzle adapter and expects drizzle db instance available with `useDb()` exported from `server/utils/db.ts`. 
 
@@ -22,8 +36,10 @@ The default configuration uses drizzle adapter and expects drizzle db instance a
 
 Generate the better-auth schema with the following command. Change the schema file paths to match your own if necessary.
 
+Point `--config` at this layer's `server/utils/auth.ts` (`layers/auth/...` for a local copy, or the downloaded layer under `node_modules/.c12` for a GitHub extend). Pass Nuxt's server tsconfig so the `~~` alias resolves.
+
 ```bash
-npx @better-auth/cli@latest generate --config layers/auth/server/utils/auth.ts --output server/db/auth_schema.ts --yes
+npx @better-auth/cli@latest generate --config layers/auth/server/utils/auth.ts --tsconfig .nuxt/tsconfig.server.json --output server/db/auth_schema.ts --yes
 echo -e "\nexport * from './auth_schema'" >> server/db/schema.ts
 npx eslint --fix server/db/auth_schema.ts
 ```
@@ -38,10 +54,11 @@ pnpm drizzle-kit migrate
 ### Using with Tailwind
 
 Tailwind components are provided with the layer. To use them, [install Tailwind](https://tailwindcss.com/docs/installation/framework-guides/nuxt).
-And add `@source '../../../layers/';` to your `app/assets/css/main.css` to prevent the layer's tailwind classes from being purged by Tailwind's tree-shaking.
+Import the layer source file from your `app/assets/css/main.css` so Tailwind scans the layer wherever Nuxt installed it:
 
-```bash
-echo -e "\n@source '../../../layers/';" >> app/assets/css/main.css
+```css
+@import "tailwindcss";
+@import "#layers/auth/app/assets/css/source.css";
 ```
 
 ### Configure environment variables
@@ -310,7 +327,7 @@ NUXT_AUTH_ADMIN_EMAILS=admin@example.com,superuser@company.org
 
 ## Email Templates
 
-Customize the magic link email template at `server/assets/magic-link.html`.
+The default magic link email template is `server/assets/magic-link.html` in this layer. To override it, add `server/assets/magic-link.html` in the host app.
 
 Available template variables:
 - `{{email}}` - User's email

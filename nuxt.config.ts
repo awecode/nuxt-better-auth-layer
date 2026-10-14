@@ -1,4 +1,7 @@
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+const currentDir = dirname(fileURLToPath(import.meta.url))
 
 export default defineNuxtConfig({
   $meta: {
@@ -33,6 +36,15 @@ export default defineNuxtConfig({
   nitro: {
     experimental: {
       asyncContext: true,
+    },
+  },
+  hooks: {
+    'nitro:config'(nitroConfig) {
+      nitroConfig.serverAssets = nitroConfig.serverAssets || []
+      nitroConfig.serverAssets.push({
+        baseName: 'auth',
+        dir: join(currentDir, 'server/assets'),
+      })
     },
   },
 })

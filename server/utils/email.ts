@@ -40,6 +40,20 @@ export const renderTemplate = (template: string, variables: Record<string, strin
   return template
 }
 
+async function readMagicLinkTemplate() {
+  // Host server/assets overrides the copy shipped with this layer.
+  for (const mount of ['assets:server', 'assets:auth']) {
+    try {
+      const template = await useStorage<string>(mount).getItem('magic-link.html')
+      if (template) return template
+    }
+    catch {
+      // This storage mount is not registered.
+    }
+  }
+  return null
+}
+
 export function getUserAgentInfo(ua: string): string {
   let browser: string | null = null
   let os: string | null = null
@@ -100,7 +114,7 @@ export const sendMagicLinkEmail = async (email: string, token: string, url: stri
   })
 
   const useragent = getUserAgentInfo(request?.getHeader('user-agent') || '')
-  const magicLinkTemplate = await useStorage<string>('assets:server').getItem(`magic-link.html`)
+  const magicLinkTemplate = await readMagicLinkTemplate()
   if (!magicLinkTemplate) {
     throw new Error('Magic link email template not found')
   }

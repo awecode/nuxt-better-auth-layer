@@ -3,7 +3,7 @@ import { magicLink, bearer, admin, customSession } from 'better-auth/plugins'
 import { sessionForClient } from '../../shared/sessionForClient'
 // import { createAuthMiddleware } from 'better-auth/api'
 // import { allowDomains, allowEmails, setAdminForEmail } from '../lib/hook-utils'
-import { useDb } from '../../../../server/utils/db'
+import { useDb } from '~~/server/utils/db'
 
 import { sendMagicLinkEmail } from './email'
 import { toMagicLinkConfirmUrl } from './magicLinkConfirmUrl'
