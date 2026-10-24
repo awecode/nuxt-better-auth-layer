@@ -65,10 +65,10 @@ Import the layer source file from your `app/assets/css/main.css` so Tailwind sca
 
 ```bash
 # SES Configuration (required for production for sending emails)
-SES_REGION=us-east-1
-SES_ACCESS_KEY_ID=your_access_key_id
-SES_SECRET_KEY=your_secret_key
-SES_FROM_EMAIL=noreply@example.com
+NUXT_SES_REGION=us-east-1
+NUXT_SES_ACCESS_KEY_ID=your_access_key_id
+NUXT_SES_SECRET_KEY=your_secret_key
+NUXT_SES_FROM_EMAIL=noreply@example.com
 
 # Access restrictions (optional - see below)
 NUXT_AUTH_ALLOWED_DOMAINS=example.com,company.org
