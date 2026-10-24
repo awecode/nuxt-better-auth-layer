@@ -1,7 +1,7 @@
 import { getSessionCookie } from 'better-auth/cookies'
 import { withLeadingSlash, withoutTrailingSlash } from 'ufo'
 import { safeInternalPath } from '../../shared/safeInternalPath'
-import { useServerAuth } from '../utils/auth'
+import { getAuthSession } from '../utils/session'
 
 function normalizePath(path: string) {
   return withoutTrailingSlash(withLeadingSlash(path))
@@ -38,13 +38,11 @@ export default defineEventHandler(async (event) => {
   if (!isAdminRoute && !isAuthenticatedRoute)
     return
 
-  let session: Awaited<ReturnType<ReturnType<typeof useServerAuth>['api']['getSession']>> | null = null
-
-  if (getSessionCookie(event.headers) !== null) {
-    session = await useServerAuth().api.getSession({
-      headers: event.headers,
-    })
-  }
+  // getAuthSession caches the session on event.context.auth and forwards
+  // refreshed session cookies to the browser.
+  const session = getSessionCookie(event.headers) !== null
+    ? await getAuthSession(event)
+    : null
 
   event.context.auth = session
 

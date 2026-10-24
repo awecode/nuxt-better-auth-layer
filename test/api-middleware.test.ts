@@ -2,12 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getSession = vi.fn()
 
-vi.mock('../server/utils/auth', () => ({
-  useServerAuth: () => ({
-    api: {
-      getSession,
-    },
-  }),
+vi.mock('../server/utils/session', () => ({
+  getAuthSession: getSession,
 }))
 
 const authConfig = {
