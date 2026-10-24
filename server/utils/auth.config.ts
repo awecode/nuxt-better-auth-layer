@@ -3,13 +3,13 @@ import { magicLink, bearer, admin, customSession } from 'better-auth/plugins'
 import { sessionForClient } from '../../shared/sessionForClient'
 // import { createAuthMiddleware } from 'better-auth/api'
 // import { allowDomains, allowEmails, setAdminForEmail } from '../lib/hook-utils'
-import { useDb } from '~~/server/utils/db'
+import type { Db } from '~~/server/utils/db'
 
 import { sendMagicLinkEmail } from './email'
 import { toMagicLinkConfirmUrl } from './magicLinkConfirmUrl'
 import type { BetterAuthOptions } from 'better-auth'
 
-export function createAuthConfig(): BetterAuthOptions {
+export function createAuthConfig(db: Db): BetterAuthOptions {
   return {
     emailAndPassword: {
       enabled: false,
@@ -34,7 +34,7 @@ export function createAuthConfig(): BetterAuthOptions {
         session: sessionForClient(session),
       })),
     ],
-    database: drizzleAdapter(useDb(), {
+    database: drizzleAdapter(db, {
       provider: 'pg',
       usePlural: true,
     }),

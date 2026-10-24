@@ -16,7 +16,7 @@ export default defineNuxtConfig({
 pnpm install better-auth aws4fetch
 ```
 
-`server/utils/auth.config.ts` imports `useDb` from the app root with Nuxt's `~~` alias (`~~/server/utils/db`), so the same layer works from GitHub and from a local `layers/auth` folder.
+`server/utils/auth.ts` imports from the app root with Nuxt's `~~` alias (`~~/server/utils/db`), so the same layer works from GitHub and from a local `layers/auth` folder.
 
 To vendor a copy you can edit in place:
 
@@ -30,26 +30,51 @@ Nuxt registers `layers/*` on its own.
 
 The layer provides a default configuration for better-auth in `server/utils/auth.config.ts`. Edit that file in a local `layers/auth` copy when you need to change it. Client configuration is in `composables/auth.client.config.ts`.
 
-The default configuration uses drizzle adapter and expects drizzle db instance available with `useDb()` exported from `server/utils/db.ts`. 
+The default configuration uses the drizzle adapter. The app's `server/utils/db.ts` must export:
+
+- `useDb(event)`: the request's drizzle client.
+- `createDbClient({ url })`: a new client, used by the better-auth CLI outside Nuxt.
+- `Db`: the client type.
+
+`useServerAuth(event)` builds one better-auth instance per request on `useDb(event)` and caches it on `event.context.betterAuth`. `createAuthConfig(db)` receives that database and never calls `useDb()` itself.
 
 ## Migrate database
 
-Generate the better-auth schema with the following command. Change the schema file paths to match your own if necessary.
-
-Point `--config` at this layer's `server/utils/auth.ts` (`layers/auth/...` for a local copy, or the downloaded layer under `node_modules/.c12` for a GitHub extend). Pass Nuxt's server tsconfig so the `~~` alias resolves.
+Install the better-auth CLI (the `auth` package, which replaces the deprecated `@better-auth/cli`) as a dev dependency, so its version stays pinned next to `better-auth`:
 
 ```bash
-npx @better-auth/cli@latest generate --config layers/auth/server/utils/auth.ts --tsconfig .nuxt/tsconfig.server.json --output server/db/auth_schema.ts --yes
-echo -e "\nexport * from './auth_schema'" >> server/db/schema.ts
-npx eslint --fix server/db/auth_schema.ts
+pnpm add -D auth
 ```
 
-Migrate the database.
+Add the scripts (`db:*` match the `nuxt-database` skill):
+
+```json
+{
+  "scripts": {
+    "auth:generate": "auth generate --config layers/auth/server/utils/auth.ts --output layers/auth/server/schema.ts --yes && eslint --fix layers/auth/server/schema.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
+  }
+}
+```
+
+Point `--config` at this layer's `server/utils/auth.ts` (`layers/auth/...` for a local copy, or the downloaded layer under `node_modules/.c12` for a GitHub extend). The CLI loads `.env` and needs `NUXT_DATABASE_URL`, plus `BETTER_AUTH_URL` or `NUXT_PUBLIC_BASE_URL`.
+
+Re-export the generated tables from `server/db/schema.ts`:
+
+```ts
+export * from '../../layers/auth/server/schema'
+```
+
+Then generate and apply the migration:
 
 ```bash
-pnpm drizzle-kit generate
-pnpm drizzle-kit migrate
+pnpm auth:generate  # writes the better-auth tables to layers/auth/server/schema.ts
+pnpm db:generate    # drizzle-kit compares the schema with past migrations and writes a new SQL migration
+pnpm db:migrate     # applies pending migrations to NUXT_DATABASE_URL
 ```
+
+On D1, use the skill's `db:migrate:d1:local` (`wrangler d1 migrations apply DB --local`) or `db:migrate:d1` (`--remote`) instead of `db:migrate`.
 
 ### Using with Tailwind
 
@@ -165,7 +190,7 @@ await requireAdmin(event)
 ```
 
 ### `getAuthSession(event)`
-Retrieves the current session from the event context. If not already cached, fetches it from the auth API.
+Retrieves the current session from the event context. If not already cached, fetches it from the auth API and forwards any refreshed session cookies to the response.
 
 ### `getUser(event)`
 Convenience function that returns the user from the session, or `undefined` if not authenticated.

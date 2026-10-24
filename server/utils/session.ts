@@ -1,4 +1,4 @@
-import { defineEventHandler, createError } from 'h3'
+import { appendResponseHeader, defineEventHandler, createError } from 'h3'
 import { useServerAuth } from './auth'
 import type { EventHandler, H3Event } from 'h3'
 
@@ -7,9 +7,14 @@ type Session = Awaited<ReturnType<ReturnType<typeof useServerAuth>['api']['getSe
 export async function getAuthSession(event: H3Event) {
   let session: Session | null = event.context.auth
   if (!session) {
-    session = await useServerAuth().api.getSession({
+    const result = await useServerAuth(event).api.getSession({
       headers: event.headers,
+      returnHeaders: true,
     })
+    // Pass on refreshed session cookies, so the browser keeps a fresh cookie.
+    for (const cookie of result.headers?.getSetCookie() ?? [])
+      appendResponseHeader(event, 'set-cookie', cookie)
+    session = result.response
     event.context.auth = session
   }
   return session
