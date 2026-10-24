@@ -40,7 +40,7 @@ The default configuration uses the drizzle adapter. The app's `server/utils/db.t
 
 ## Migrate database
 
-Install the better-auth CLI (the `auth` package, which replaces the deprecated `@better-auth/cli`) as a dev dependency, so its version stays pinned next to `better-auth`:
+Install the better-auth CLI (the `auth` package) as a dev dependency, so its version stays pinned next to `better-auth`:
 
 ```bash
 pnpm add -D auth
