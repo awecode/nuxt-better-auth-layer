@@ -302,9 +302,11 @@ Restrict sign-ups to specific email domains:
 ```bash
 # Allow only users with @example.com or @company.org emails
 NUXT_AUTH_ALLOWED_DOMAINS=example.com,company.org
-# Allow any domain (default behavior)
+# Allow any domain
 NUXT_AUTH_ALLOWED_DOMAINS=*
 ```
+
+When this hook is enabled and `NUXT_AUTH_ALLOWED_DOMAINS` is unset, every sign-in is rejected. Set it to `*` to allow any domain.
 
 ### Allowed Emails
 Restrict sign-ups to specific email addresses:
@@ -312,9 +314,11 @@ Restrict sign-ups to specific email addresses:
 ```bash
 # Allow only these specific email addresses
 NUXT_AUTH_ALLOWED_EMAILS=admin@example.com,user@company.org
-# Allow any email (default behavior)
+# Allow any email
 NUXT_AUTH_ALLOWED_EMAILS=*
 ```
+
+When this hook is enabled and `NUXT_AUTH_ALLOWED_EMAILS` is unset, every sign-in is rejected. Set it to `*` to allow any email.
 
 ### Admin Role Assignment
 Automatically assign admin role to specific email addresses during user creation:

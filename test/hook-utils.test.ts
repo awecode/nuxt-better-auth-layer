@@ -42,6 +42,12 @@ describe('allowDomains', () => {
       .toThrow('You are not authorized to log in with this email.')
   })
 
+  it('rejects every email when the list is unset', () => {
+    runtimeAuth.allowedDomains = ''
+    expect(() => allowDomains(signupContext('/sign-in/magic-link', 'a@example.com')))
+      .toThrow('You are not authorized to log in with this email.')
+  })
+
   it('allows every domain when the list is *', () => {
     runtimeAuth.allowedDomains = '*'
     expect(() => allowDomains(signupContext('/sign-in/magic-link', 'a@anywhere.test'))).not.toThrow()
@@ -69,6 +75,12 @@ describe('allowEmails', () => {
   it('allows only the listed addresses on signup', () => {
     expect(() => allowEmails(signupContext('/sign-in/magic-link', 'staff@example.com'))).not.toThrow()
     expect(() => allowEmails(signupContext('/sign-up/email', 'other@example.com')))
+      .toThrow('You are not authorized to log in with this email.')
+  })
+
+  it('rejects every email when the list is unset', () => {
+    runtimeAuth.allowedEmails = ''
+    expect(() => allowEmails(signupContext('/sign-in/magic-link', 'staff@example.com')))
       .toThrow('You are not authorized to log in with this email.')
   })
 
