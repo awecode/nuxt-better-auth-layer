@@ -88,7 +88,7 @@ Add the scripts (`db:*` match the `nuxt-database` skill):
 ```json
 {
   "scripts": {
-    "auth:generate": "auth generate --config layers/auth/server/utils/auth.ts --output layers/auth/server/schema.ts --yes && eslint --fix layers/auth/server/schema.ts",
+    "auth:generate": "auth generate --config layers/auth/server/utils/auth.ts --output server/db/auth-schema.ts --yes && eslint --fix server/db/auth-schema.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   }
@@ -97,16 +97,16 @@ Add the scripts (`db:*` match the `nuxt-database` skill):
 
 Point `--config` at this layer's `server/utils/auth.ts` (`layers/auth/...` for a local copy, or the downloaded layer under `node_modules/.c12` for a GitHub extend). The CLI loads `.env` and needs `NUXT_DATABASE_URL` (and `NUXT_AUTH_DB_PROVIDER` for SQLite), plus `BETTER_AUTH_URL` or `NUXT_PUBLIC_BASE_URL`.
 
-Re-export the generated tables from `server/db/schema.ts`:
+The generated tables belong to the app, not the layer: they depend on the app's `NUXT_AUTH_DB_PROVIDER` and the plugins in its `server/auth.options.ts`. Re-export them from `server/db/schema.ts`:
 
 ```ts
-export * from '../../layers/auth/server/schema'
+export * from './auth-schema'
 ```
 
 Then generate and apply the migration:
 
 ```bash
-pnpm auth:generate  # writes the better-auth tables to layers/auth/server/schema.ts
+pnpm auth:generate  # writes the better-auth tables to server/db/auth-schema.ts
 pnpm db:generate    # drizzle-kit compares the schema with past migrations and writes a new SQL migration
 pnpm db:migrate     # applies pending migrations to NUXT_DATABASE_URL
 ```
