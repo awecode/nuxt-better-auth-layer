@@ -357,9 +357,11 @@ await useAuth().client.signIn.social({ provider: 'google', callbackURL: '/dashbo
 
 ### Other providers
 
-Add other better-auth providers (GitHub, Microsoft, and so on) to `socialProviders` in `server/utils/auth.config.ts`. Their callback is `<BETTER_AUTH_URL>/api/auth/callback/<provider>`, and the allowlist covers them too. `MagicLinkLogin` only has a Google button, so add your own for other providers.
+1. Add the provider to `socialProviders` in `server/utils/auth.config.ts` ([provider list](https://www.better-auth.com/docs/concepts/oauth), for example [GitHub](https://www.better-auth.com/docs/authentication/github)). For a generic OpenID Connect provider (Keycloak, Authentik, an Azure tenant), use the [`genericOAuth` plugin](https://www.better-auth.com/docs/plugins/generic-oauth) instead.
+2. Register `<BETTER_AUTH_URL>/api/auth/callback/<provider>` as the redirect URI in the provider's console.
+3. Add a button: `useAuth().client.signIn.social({ provider: '<provider>' })`. `MagicLinkLogin` only has the Google one.
 
-For a generic OpenID Connect provider (Keycloak, Authentik, an Azure tenant), use better-auth's `genericOAuth` plugin. It uses the same sign-in (`signIn.social({ provider: '<providerId>' })`) and callback (`<BETTER_AUTH_URL>/api/auth/callback/<providerId>`) as the built-in providers.
+The allowlist, admin emails, account linking, and error page work for every provider. They trust the email the provider returns, so only use providers that return verified emails.
 
 ## Email Templates
 
