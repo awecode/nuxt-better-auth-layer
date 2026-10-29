@@ -291,35 +291,54 @@ curl -X POST https://yourapp.com/api/protected \
 
 ## Access Restrictions by Email Address or Domain
 
-You can restrict authentication to specific email domains or individual email addresses using environment variables. To enable this, use the allowDomains and/or allowEmails hook utils in better auth config hooks.
+You can restrict authentication to specific email domains or individual email addresses using environment variables. To enable this, use the hook utils in `server/utils/auth.config.ts` (the commented block there has the same code).
+
+- The request hooks (`allowDomains`, `allowEmails`) reject magic-link and email sign-up requests, so no email is sent to a disallowed address.
+- The database hooks (`allowDomainForEmail`, `allowEmailForEmail`) run for every sign-in method, Google and other OAuth providers included. The user hook stops disallowed sign-ups. The session hook stops existing users whose email was removed from the allowlist. Sessions that already exist stay valid until they expire or are revoked.
+- Pass the hook context (`ctx`) so a rejected OAuth login redirects to `redirectErrorTo` with `?error=NOT_AUTHORIZED` instead of showing a JSON error.
 
 ```ts
-// server/utils/auth.ts
+// server/utils/auth.config.ts
 import { createAuthMiddleware } from 'better-auth/api'
-import { allowDomains, allowEmails, setAdminForEmail } from '../lib/hook-utils'
+import { allowDomainForEmail, allowDomains, allowEmailForEmail, allowEmails, sessionUserEmail, setAdminForEmail } from '../lib/hook-utils'
 
-export const auth = betterAuth({
-  // ...
-  hooks: {
-    before: createAuthMiddleware(async (ctx) => {
-      // Only allow emails from configured domains as users
-      allowDomains(ctx)
-      // Only allow configured emails as users
-      allowEmails(ctx)
-    }),
-  },
-  databaseHooks: {
-    user: {
-      create: {
-        before: async (user) => {
-          // Automatically set admin role for configured emails
-          return setAdminForEmail(user)
+export function createAuthConfig(db: Db) {
+  return {
+    // ...
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        // Only allow emails from configured domains as users
+        allowDomains(ctx)
+        // Only allow configured emails as users
+        allowEmails(ctx)
+      }),
+    },
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (user, ctx) => {
+            allowDomainForEmail(user.email, ctx)
+            allowEmailForEmail(user.email, ctx)
+            // Automatically set admin role for configured emails
+            return setAdminForEmail(user)
+          },
+        },
+      },
+      session: {
+        create: {
+          before: async (session, ctx) => {
+            const email = await sessionUserEmail(session, ctx)
+            allowDomainForEmail(email, ctx)
+            allowEmailForEmail(email, ctx)
+          },
         },
       },
     },
-  },
-})
+  } satisfies BetterAuthOptions
+}
 ```
+
+Use only the domain or only the email checks if you need just one of them.
 
 ### Allowed Domains
 Restrict sign-ups to specific email domains:
