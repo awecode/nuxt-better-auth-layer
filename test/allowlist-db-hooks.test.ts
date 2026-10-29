@@ -3,42 +3,30 @@ import { memoryAdapter } from 'better-auth/adapters/memory'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const runtimeAuth = { allowedDomains: '', allowedEmails: '', adminEmails: '' }
+// The test passes its own database, so the app's drizzle client is not needed.
+vi.mock('../server/utils/email', () => ({ sendMagicLinkEmail: vi.fn() }))
+vi.mock('better-auth/adapters/drizzle', () => ({ drizzleAdapter: () => ({}) }))
 vi.stubGlobal('useRuntimeConfig', () => ({ auth: runtimeAuth, public: { auth: { redirectErrorTo: '/auth/error' } } }))
 
-const { allowDomainForEmail, allowEmailForEmail, sessionUserEmail, setAdminForEmail } = await import('../server/lib/hook-utils')
+const { sessionUserEmail } = await import('../server/lib/hook-utils')
+const { createAuthConfig } = await import('../server/utils/auth.config')
 
 const baseURL = 'https://app.example.com'
 
-// Only the database hooks: no request hooks, so these tests show the
-// database hooks alone cover every sign-in method.
+// The layer's own hooks from createAuthConfig, on an in-memory database.
+// Email/password sign-in has no request hook, so it shows the database hooks
+// alone cover sign-in methods other than the magic link.
 function createAuth() {
   const db = { user: [], session: [], account: [], verification: [] } as Record<string, Record<string, unknown>[]>
+  const { hooks, databaseHooks } = createAuthConfig({ id: 'db' })
   const auth = betterAuth({
     baseURL,
     secret: 'test-secret-that-is-long-enough-for-better-auth',
     database: memoryAdapter(db),
     emailAndPassword: { enabled: true },
     socialProviders: { google: { clientId: 'id', clientSecret: 'secret' } },
-    databaseHooks: {
-      user: {
-        create: {
-          before: async (user, ctx) => {
-            allowDomainForEmail(user.email, ctx)
-            allowEmailForEmail(user.email, ctx)
-            return setAdminForEmail(user)
-          },
-        },
-      },
-      session: {
-        create: {
-          before: async (session, ctx) => {
-            const email = await sessionUserEmail(session, ctx)
-            allowDomainForEmail(email, ctx)
-            allowEmailForEmail(email, ctx)
-          },
-        },
-      },
-    },
+    hooks,
+    databaseHooks,
   })
   return { auth, db }
 }
@@ -52,42 +40,13 @@ const post = (auth: ReturnType<typeof createAuth>['auth'], path: string, body: u
 const password = 'a-long-test-password'
 
 beforeEach(() => {
-  runtimeAuth.allowedDomains = '*'
+  runtimeAuth.allowedDomains = ''
   runtimeAuth.allowedEmails = '*'
 })
 
 afterEach(() => {
   vi.unstubAllGlobals()
   vi.stubGlobal('useRuntimeConfig', () => ({ auth: runtimeAuth, public: { auth: { redirectErrorTo: '/auth/error' } } }))
-})
-
-describe('allowDomainForEmail and allowEmailForEmail', () => {
-  it('allow listed values and the * wildcard', () => {
-    runtimeAuth.allowedDomains = 'example.com'
-    runtimeAuth.allowedEmails = 'a@example.com'
-    expect(() => allowDomainForEmail('b@example.com')).not.toThrow()
-    expect(() => allowEmailForEmail('a@example.com')).not.toThrow()
-    runtimeAuth.allowedDomains = '*'
-    runtimeAuth.allowedEmails = '*'
-    expect(() => allowDomainForEmail('x@other.com')).not.toThrow()
-    expect(() => allowEmailForEmail('x@other.com')).not.toThrow()
-  })
-
-  it('reject unlisted, lookalike, and missing emails', () => {
-    runtimeAuth.allowedDomains = 'example.com'
-    runtimeAuth.allowedEmails = 'a@example.com'
-    expect(() => allowDomainForEmail('a@evilexample.com')).toThrow('not authorized')
-    expect(() => allowEmailForEmail('b@example.com')).toThrow('not authorized')
-    expect(() => allowDomainForEmail(undefined)).toThrow('not authorized')
-    expect(() => allowEmailForEmail(undefined)).toThrow('not authorized')
-  })
-
-  it('reject everything when the lists are unset', () => {
-    runtimeAuth.allowedDomains = ''
-    runtimeAuth.allowedEmails = ''
-    expect(() => allowDomainForEmail('a@example.com')).toThrow('not authorized')
-    expect(() => allowEmailForEmail('a@example.com')).toThrow('not authorized')
-  })
 })
 
 describe('sessionUserEmail', () => {
@@ -97,6 +56,22 @@ describe('sessionUserEmail', () => {
 })
 
 describe('allowlist database hooks', () => {
+  it('rejects every sign-up when neither list is set', async () => {
+    runtimeAuth.allowedEmails = ''
+    const { auth, db } = createAuth()
+    const res = await post(auth, '/sign-up/email', { email: 'a@example.com', password, name: 'A' })
+    expect(res.status).toBe(400)
+    expect(db.user).toHaveLength(0)
+  })
+
+  it('lets an email on an allowed domain sign up', async () => {
+    runtimeAuth.allowedEmails = ''
+    runtimeAuth.allowedDomains = 'example.com'
+    const { auth, db } = createAuth()
+    expect((await post(auth, '/sign-up/email', { email: 'a@example.com', password, name: 'A' })).status).toBe(200)
+    expect(db.user).toHaveLength(1)
+  })
+
   it('lets an allowed email sign up', async () => {
     runtimeAuth.allowedEmails = 'a@example.com'
     const { auth, db } = createAuth()

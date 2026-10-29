@@ -8,7 +8,7 @@ const runtimeAuth = {
 
 vi.stubGlobal('useRuntimeConfig', () => ({ auth: runtimeAuth }))
 
-const { allowDomains, allowEmails, setAdminForEmail } = await import('../server/lib/hook-utils')
+const { allowListedEmail, allowListedSignup, setAdminForEmail } = await import('../server/lib/hook-utils')
 
 afterEach(() => {
   vi.stubGlobal('useRuntimeConfig', () => ({ auth: runtimeAuth }))
@@ -18,42 +18,57 @@ function signupContext(path: string, email?: string) {
   return {
     path,
     body: email === undefined ? {} : { email },
-  } as Parameters<typeof allowDomains>[0]
+  } as Parameters<typeof allowListedSignup>[0]
 }
 
-describe('allowDomains', () => {
+const rejected = 'You are not authorized to log in with this email.'
+
+describe('allowListedEmail', () => {
   beforeEach(() => {
-    runtimeAuth.allowedDomains = 'example.com,awecode.com'
-  })
-
-  it('ignores paths that are not signup', () => {
-    expect(() => allowDomains(signupContext('/sign-in/email', 'a@evil.com'))).not.toThrow()
-  })
-
-  it('allows an email on a configured domain', () => {
-    expect(() => allowDomains(signupContext('/sign-in/magic-link', 'a@example.com'))).not.toThrow()
-    expect(() => allowDomains(signupContext('/sign-up/email', 'a@awecode.com'))).not.toThrow()
-  })
-
-  it('rejects a lookalike domain', () => {
-    expect(() => allowDomains(signupContext('/sign-in/magic-link', 'a@notexample.com')))
-      .toThrow('You are not authorized to log in with this email.')
-    expect(() => allowDomains(signupContext('/sign-up/email', 'a@example.com.evil')))
-      .toThrow('You are not authorized to log in with this email.')
-  })
-
-  it('rejects every email when the list is unset', () => {
     runtimeAuth.allowedDomains = ''
-    expect(() => allowDomains(signupContext('/sign-in/magic-link', 'a@example.com')))
-      .toThrow('You are not authorized to log in with this email.')
+    runtimeAuth.allowedEmails = ''
   })
 
-  it('allows every domain when the list is *', () => {
+  it('rejects everyone when both lists are unset', () => {
+    expect(() => allowListedEmail('a@example.com')).toThrow(rejected)
+  })
+
+  it('allows everyone when either list is *', () => {
+    runtimeAuth.allowedEmails = '*'
+    expect(() => allowListedEmail('a@anywhere.test')).not.toThrow()
+    runtimeAuth.allowedEmails = ''
     runtimeAuth.allowedDomains = '*'
-    expect(() => allowDomains(signupContext('/sign-in/magic-link', 'a@anywhere.test'))).not.toThrow()
+    expect(() => allowListedEmail('a@anywhere.test')).not.toThrow()
   })
 
-  it('reads the allowlist when the hook runs', () => {
+  it('allows only the listed addresses', () => {
+    runtimeAuth.allowedEmails = 'staff@example.com, admin@example.com'
+    expect(() => allowListedEmail('admin@example.com')).not.toThrow()
+    expect(() => allowListedEmail('other@example.com')).toThrow(rejected)
+  })
+
+  it('allows the listed domains and rejects lookalikes', () => {
+    runtimeAuth.allowedDomains = 'example.com,awecode.com'
+    expect(() => allowListedEmail('a@example.com')).not.toThrow()
+    expect(() => allowListedEmail('a@awecode.com')).not.toThrow()
+    expect(() => allowListedEmail('a@notexample.com')).toThrow(rejected)
+    expect(() => allowListedEmail('a@example.com.evil')).toThrow(rejected)
+  })
+
+  it('allows an email that matches either list when both are set', () => {
+    runtimeAuth.allowedDomains = 'company.com'
+    runtimeAuth.allowedEmails = 'contractor@gmail.com'
+    expect(() => allowListedEmail('a@company.com')).not.toThrow()
+    expect(() => allowListedEmail('contractor@gmail.com')).not.toThrow()
+    expect(() => allowListedEmail('other@gmail.com')).toThrow(rejected)
+  })
+
+  it('rejects a missing email', () => {
+    runtimeAuth.allowedDomains = 'example.com'
+    expect(() => allowListedEmail(undefined)).toThrow(rejected)
+  })
+
+  it('reads the allowlist when the check runs', () => {
     vi.stubGlobal('useRuntimeConfig', () => ({
       auth: {
         allowedDomains: 'later.test',
@@ -61,33 +76,26 @@ describe('allowDomains', () => {
         adminEmails: '',
       },
     }))
-    expect(() => allowDomains(signupContext('/sign-in/magic-link', 'a@later.test'))).not.toThrow()
-    expect(() => allowDomains(signupContext('/sign-in/magic-link', 'a@example.com')))
-      .toThrow('You are not authorized to log in with this email.')
+    expect(() => allowListedEmail('a@later.test')).not.toThrow()
+    expect(() => allowListedEmail('a@example.com')).toThrow(rejected)
   })
 })
 
-describe('allowEmails', () => {
+describe('allowListedSignup', () => {
   beforeEach(() => {
-    runtimeAuth.allowedEmails = 'staff@example.com,admin@example.com'
+    runtimeAuth.allowedDomains = ''
+    runtimeAuth.allowedEmails = 'staff@example.com'
   })
 
-  it('allows only the listed addresses on signup', () => {
-    expect(() => allowEmails(signupContext('/sign-in/magic-link', 'staff@example.com'))).not.toThrow()
-    expect(() => allowEmails(signupContext('/sign-up/email', 'other@example.com')))
-      .toThrow('You are not authorized to log in with this email.')
+  it('checks magic-link and email sign-up requests', () => {
+    expect(() => allowListedSignup(signupContext('/sign-in/magic-link', 'staff@example.com'))).not.toThrow()
+    expect(() => allowListedSignup(signupContext('/sign-in/magic-link', 'other@example.com'))).toThrow(rejected)
+    expect(() => allowListedSignup(signupContext('/sign-up/email', 'other@example.com'))).toThrow(rejected)
   })
 
-  it('rejects every email when the list is unset', () => {
-    runtimeAuth.allowedEmails = ''
-    expect(() => allowEmails(signupContext('/sign-in/magic-link', 'staff@example.com')))
-      .toThrow('You are not authorized to log in with this email.')
-  })
-
-  it('ignores other paths and a wildcard list', () => {
-    expect(() => allowEmails(signupContext('/get-session', 'other@example.com'))).not.toThrow()
-    runtimeAuth.allowedEmails = '*'
-    expect(() => allowEmails(signupContext('/sign-in/magic-link', 'other@example.com'))).not.toThrow()
+  it('ignores other paths', () => {
+    expect(() => allowListedSignup(signupContext('/sign-in/email', 'other@example.com'))).not.toThrow()
+    expect(() => allowListedSignup(signupContext('/get-session', 'other@example.com'))).not.toThrow()
   })
 })
 

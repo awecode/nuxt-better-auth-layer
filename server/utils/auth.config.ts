@@ -1,8 +1,9 @@
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { magicLink, bearer, admin, customSession } from 'better-auth/plugins'
 import { sessionForClient } from '../../shared/sessionForClient'
-// import { createAuthMiddleware } from 'better-auth/api'
-// import { allowDomainForEmail, allowDomains, allowEmailForEmail, allowEmails, sessionUserEmail, setAdminForEmail } from '../lib/hook-utils'
+import { createAuthMiddleware } from 'better-auth/api'
+import { allowListedEmail, allowListedSignup, sessionUserEmail } from '../lib/hook-utils'
+// import { setAdminForEmail } from '../lib/hook-utils'
 import type { Db } from '~~/server/utils/db'
 
 import { sendMagicLinkEmail } from './email'
@@ -42,38 +43,33 @@ export function createAuthConfig(db: Db) {
       provider: 'pg',
       usePlural: true,
     }),
-    // Allowlist: enable the request hooks and the database hooks together. The
-    // request hooks stop magic-link emails to disallowed addresses. The
-    // database hooks cover every sign-in method, Google included, and also
-    // block existing users removed from the allowlist.
-    // hooks: {
-    //   before: createAuthMiddleware(async (ctx) => {
-    //     // Only allow emails from configured domains as users
-    //     allowDomains(ctx)
-    //     // Only allow configured emails as users
-    //     allowEmails(ctx)
-    //   }),
-    // },
-    // databaseHooks: {
-    //   user: {
-    //     create: {
-    //       before: async (user, ctx) => {
-    //         allowDomainForEmail(user.email, ctx)
-    //         allowEmailForEmail(user.email, ctx)
-    //         // Automatically set admin role for configured emails
-    //         return setAdminForEmail(user)
-    //       },
-    //     },
-    //   },
-    //   session: {
-    //     create: {
-    //       before: async (session, ctx) => {
-    //         const email = await sessionUserEmail(session, ctx)
-    //         allowDomainForEmail(email, ctx)
-    //         allowEmailForEmail(email, ctx)
-    //       },
-    //     },
-    //   },
-    // },
+    // Allowlist from NUXT_AUTH_ALLOWED_EMAILS and NUXT_AUTH_ALLOWED_DOMAINS.
+    // Nobody can log in until one is set; use `*` to allow everyone.
+    hooks: {
+      // Rejects magic-link requests early, so no email goes to a disallowed address.
+      before: createAuthMiddleware(async (ctx) => {
+        allowListedSignup(ctx)
+      }),
+    },
+    // Database hooks run for every sign-in method (magic link, Google, OAuth).
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (user, ctx) => {
+            allowListedEmail(user.email, ctx)
+            // Automatically set admin role for configured emails
+            // return setAdminForEmail(user)
+          },
+        },
+      },
+      session: {
+        create: {
+          // Blocks existing users whose email was removed from the allowlist.
+          before: async (session, ctx) => {
+            allowListedEmail(await sessionUserEmail(session, ctx), ctx)
+          },
+        },
+      },
+    },
   } satisfies BetterAuthOptions
 }

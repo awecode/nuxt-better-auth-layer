@@ -23,39 +23,32 @@ function notAuthorized(ctx?: GenericEndpointContext | null) {
   })
 }
 
-/**
- * Throws unless the email is on a domain in NUXT_AUTH_ALLOWED_DOMAINS (`*` allows all).
- * Pass the hook context so OAuth callbacks redirect to the error page.
- */
-export const allowDomainForEmail = (email: unknown, ctx?: GenericEndpointContext | null) => {
-  const allowedDomains = authConfig().allowedDomains?.split(',') || []
-  if (allowedDomains.includes('*'))
-    return
-  if (typeof email !== 'string' || !allowedDomains.some(domain => email.endsWith(`@${domain}`)))
-    throw notAuthorized(ctx)
+function list(value: string | undefined) {
+  return (value || '').split(',').map(item => item.trim()).filter(Boolean)
 }
 
 /**
- * Throws unless the email is listed in NUXT_AUTH_ALLOWED_EMAILS (`*` allows all).
- * Pass the hook context so OAuth callbacks redirect to the error page.
+ * Throws unless the email is in NUXT_AUTH_ALLOWED_EMAILS or on a domain in
+ * NUXT_AUTH_ALLOWED_DOMAINS. `*` in either allows everyone. With both unset,
+ * nobody can log in: each app must choose. Pass the hook context so OAuth
+ * callbacks redirect to the error page.
  */
-export const allowEmailForEmail = (email: unknown, ctx?: GenericEndpointContext | null) => {
-  const allowedEmails = authConfig().allowedEmails?.split(',') || []
-  if (allowedEmails.includes('*'))
+export const allowListedEmail = (email: unknown, ctx?: GenericEndpointContext | null) => {
+  const auth = authConfig()
+  const emails = list(auth.allowedEmails)
+  const domains = list(auth.allowedDomains)
+  if (emails.includes('*') || domains.includes('*'))
     return
-  if (typeof email !== 'string' || !allowedEmails.includes(email))
-    throw notAuthorized(ctx)
+  if (typeof email === 'string' && (emails.includes(email) || domains.some(domain => email.endsWith(`@${domain}`))))
+    return
+  throw notAuthorized(ctx)
 }
 
-// Request hooks: reject magic-link and email sign-up requests before an email is sent.
-export const allowDomains = (ctx: Ctx) => {
+// Request hook: rejects magic-link and email sign-up requests early, so no
+// email is sent to an address that is not allowed.
+export const allowListedSignup = (ctx: Ctx) => {
   if (signupPaths.includes(ctx.path))
-    allowDomainForEmail(ctx.body?.email)
-}
-
-export const allowEmails = (ctx: Ctx) => {
-  if (signupPaths.includes(ctx.path))
-    allowEmailForEmail(ctx.body?.email)
+    allowListedEmail(ctx.body?.email)
 }
 
 /**

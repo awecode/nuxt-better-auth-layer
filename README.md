@@ -95,9 +95,11 @@ NUXT_SES_ACCESS_KEY_ID=your_access_key_id
 NUXT_SES_SECRET_KEY=your_secret_key
 NUXT_SES_FROM_EMAIL=noreply@example.com
 
-# Access restrictions (optional - see below)
+# Who can log in (required: nobody can log in until one is set, see below)
 NUXT_AUTH_ALLOWED_DOMAINS=example.com,company.org
 NUXT_AUTH_ALLOWED_EMAILS=admin@example.com,user@company.org
+# Or allow everyone
+# NUXT_AUTH_ALLOWED_EMAILS=*
 NUXT_AUTH_ADMIN_EMAILS=admin@example.com,superuser@company.org
 
 # API route protection (optional - see below)
@@ -291,81 +293,29 @@ curl -X POST https://yourapp.com/api/protected \
 
 ## Access Restrictions by Email Address or Domain
 
-You can restrict authentication to specific email domains or individual email addresses using environment variables. To enable this, use the hook utils in `server/utils/auth.config.ts` (the commented block there has the same code).
-
-- The request hooks (`allowDomains`, `allowEmails`) reject magic-link and email sign-up requests, so no email is sent to a disallowed address.
-- The database hooks (`allowDomainForEmail`, `allowEmailForEmail`) run for every sign-in method, Google and other OAuth providers included. The user hook stops disallowed sign-ups. The session hook stops existing users whose email was removed from the allowlist. Sessions that already exist stay valid until they expire or are revoked.
-- Pass the hook context (`ctx`) so a rejected OAuth login redirects to `redirectErrorTo` with `?error=NOT_AUTHORIZED` instead of showing a JSON error.
-
-```ts
-// server/utils/auth.config.ts
-import { createAuthMiddleware } from 'better-auth/api'
-import { allowDomainForEmail, allowDomains, allowEmailForEmail, allowEmails, sessionUserEmail, setAdminForEmail } from '../lib/hook-utils'
-
-export function createAuthConfig(db: Db) {
-  return {
-    // ...
-    hooks: {
-      before: createAuthMiddleware(async (ctx) => {
-        // Only allow emails from configured domains as users
-        allowDomains(ctx)
-        // Only allow configured emails as users
-        allowEmails(ctx)
-      }),
-    },
-    databaseHooks: {
-      user: {
-        create: {
-          before: async (user, ctx) => {
-            allowDomainForEmail(user.email, ctx)
-            allowEmailForEmail(user.email, ctx)
-            // Automatically set admin role for configured emails
-            return setAdminForEmail(user)
-          },
-        },
-      },
-      session: {
-        create: {
-          before: async (session, ctx) => {
-            const email = await sessionUserEmail(session, ctx)
-            allowDomainForEmail(email, ctx)
-            allowEmailForEmail(email, ctx)
-          },
-        },
-      },
-    },
-  } satisfies BetterAuthOptions
-}
-```
-
-Use only the domain or only the email checks if you need just one of them.
-
-### Allowed Domains
-Restrict sign-ups to specific email domains:
+The layer always checks who can log in, using two environment variables. Nobody can log in until at least one is set, so each app chooses explicitly.
 
 ```bash
+# Allow everyone
+NUXT_AUTH_ALLOWED_EMAILS=*
+
 # Allow only users with @example.com or @company.org emails
 NUXT_AUTH_ALLOWED_DOMAINS=example.com,company.org
-# Allow any domain
-NUXT_AUTH_ALLOWED_DOMAINS=*
-```
 
-When this hook is enabled and `NUXT_AUTH_ALLOWED_DOMAINS` is unset, every sign-in is rejected. Set it to `*` to allow any domain.
-
-### Allowed Emails
-Restrict sign-ups to specific email addresses:
-
-```bash
-# Allow only these specific email addresses
+# Allow only these addresses
 NUXT_AUTH_ALLOWED_EMAILS=admin@example.com,user@company.org
-# Allow any email
-NUXT_AUTH_ALLOWED_EMAILS=*
 ```
 
-When this hook is enabled and `NUXT_AUTH_ALLOWED_EMAILS` is unset, every sign-in is rejected. Set it to `*` to allow any email.
+When both are set, an email that matches either list is allowed: `NUXT_AUTH_ALLOWED_DOMAINS=company.com` with `NUXT_AUTH_ALLOWED_EMAILS=contractor@gmail.com` lets in everyone at company.com plus that one contractor. `*` in either variable allows everyone.
+
+The checks are wired in `server/utils/auth.config.ts`:
+
+- A request hook (`allowListedSignup`) rejects magic-link requests for a disallowed address before any email is sent.
+- Database hooks (`allowListedEmail`) run for every sign-in method, Google and other OAuth providers included. The user hook stops disallowed sign-ups. The session hook stops existing users whose email was removed from the lists. Sessions that already exist stay valid until they expire or are revoked.
+- A rejected OAuth login redirects to `redirectErrorTo` with `?error=NOT_AUTHORIZED` instead of showing a JSON error.
 
 ### Admin Role Assignment
-Automatically assign admin role to specific email addresses during user creation:
+Automatically assign admin role to specific email addresses during user creation. Uncomment the `setAdminForEmail` line in the user create hook in `server/utils/auth.config.ts` to enable it:
 
 ```bash
 # Automatically set admin role for these email addresses
