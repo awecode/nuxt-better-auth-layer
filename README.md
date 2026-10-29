@@ -354,7 +354,7 @@ NUXT_AUTH_ALLOWED_DOMAINS=example.com,company.org
 NUXT_AUTH_ALLOWED_EMAILS=admin@example.com,user@company.org
 ```
 
-When both are set, an email that matches either list is allowed: `NUXT_AUTH_ALLOWED_DOMAINS=company.com` with `NUXT_AUTH_ALLOWED_EMAILS=contractor@gmail.com` lets in everyone at company.com plus that one contractor. `*` in either variable allows everyone.
+When both are set, an email that matches either list is allowed: `NUXT_AUTH_ALLOWED_DOMAINS=company.com` with `NUXT_AUTH_ALLOWED_EMAILS=contractor@gmail.com` lets in everyone at company.com plus that one contractor. `*` in either variable allows everyone. Matching ignores case (better-auth stores emails in lowercase) and spaces around the commas, in `NUXT_AUTH_ADMIN_EMAILS` too.
 
 The checks are the `allowlist` plugin in `server/utils/auth.config.ts`, so an app's own hooks add to them instead of replacing them:
 

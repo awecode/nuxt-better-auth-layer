@@ -63,6 +63,17 @@ describe('allowListedEmail', () => {
     expect(() => allowListedEmail('other@gmail.com')).toThrow(rejected)
   })
 
+  it('ignores case and spaces around list entries', () => {
+    runtimeAuth.allowedEmails = ' Boss@Example.com , a@example.com'
+    runtimeAuth.allowedDomains = ' Company.ORG '
+    expect(() => allowListedEmail('boss@example.com')).not.toThrow()
+    expect(() => allowListedEmail('BOSS@example.com')).not.toThrow()
+    expect(() => allowListedEmail('a@example.com')).not.toThrow()
+    expect(() => allowListedEmail('x@company.org')).not.toThrow()
+    expect(() => allowListedEmail('x@COMPANY.org')).not.toThrow()
+    expect(() => allowListedEmail('x@company.org.evil.test')).toThrow(rejected)
+  })
+
   it('rejects a missing email', () => {
     runtimeAuth.allowedDomains = 'example.com'
     expect(() => allowListedEmail(undefined)).toThrow(rejected)
@@ -112,6 +123,12 @@ describe('setAdminForEmail', () => {
         role: 'admin',
       },
     })
+  })
+
+  it('ignores case and spaces around list entries', () => {
+    runtimeAuth.adminEmails = 'a@example.com, Admin@Example.com '
+    const user = { id: '1', email: 'admin@example.com', name: 'Admin' }
+    expect(setAdminForEmail(user as Parameters<typeof setAdminForEmail>[0]).data).toMatchObject({ role: 'admin' })
   })
 
   it('leaves other users unchanged', () => {

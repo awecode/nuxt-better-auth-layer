@@ -23,8 +23,10 @@ function notAuthorized(ctx?: GenericEndpointContext | null) {
   })
 }
 
+// Comma-separated env list, lowercased: better-auth stores and looks up
+// emails in lowercase, so matching ignores case too.
 function list(value: string | undefined) {
-  return (value || '').split(',').map(item => item.trim()).filter(Boolean)
+  return (value || '').split(',').map(item => item.trim().toLowerCase()).filter(Boolean)
 }
 
 /**
@@ -39,8 +41,11 @@ export const allowListedEmail = (email: unknown, ctx?: GenericEndpointContext | 
   const domains = list(auth.allowedDomains)
   if (emails.includes('*') || domains.includes('*'))
     return
-  if (typeof email === 'string' && (emails.includes(email) || domains.some(domain => email.endsWith(`@${domain}`))))
-    return
+  if (typeof email === 'string') {
+    const lower = email.toLowerCase()
+    if (emails.includes(lower) || domains.some(domain => lower.endsWith(`@${domain}`)))
+      return
+  }
   throw notAuthorized(ctx)
 }
 
@@ -71,8 +76,7 @@ export const sessionUserEmail = async (session: Session, ctx: GenericEndpointCon
  * @returns User object with admin role set if email is in NUXT_AUTH_ADMIN_EMAILS environment variable
  */
 export const setAdminForEmail = (user: User) => {
-  const adminEmails = authConfig().adminEmails?.split(',') || []
-  if (adminEmails.includes(user.email)) {
+  if (list(authConfig().adminEmails).includes(user.email.toLowerCase())) {
     return {
       data: {
         ...user,
