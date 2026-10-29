@@ -9,7 +9,7 @@ import { sendMagicLinkEmail } from './email'
 import { toMagicLinkConfirmUrl } from './magicLinkConfirmUrl'
 import type { BetterAuthOptions } from 'better-auth'
 
-export function createAuthConfig(db: Db): BetterAuthOptions {
+export function createAuthConfig(db: Db) {
   return {
     emailAndPassword: {
       enabled: false,
@@ -29,10 +29,11 @@ export function createAuthConfig(db: Db): BetterAuthOptions {
         },
       }),
       // Last plugin: replaces GET /get-session JSON so browsers never see session.token.
+      // The second argument only types `user` with the admin fields (role).
       customSession(async ({ user, session }) => ({
         user,
         session: sessionForClient(session),
-      })),
+      }), { plugins: [admin()] }),
     ],
     database: drizzleAdapter(db, {
       provider: 'pg',
@@ -56,5 +57,5 @@ export function createAuthConfig(db: Db): BetterAuthOptions {
     //     },
     //   },
     // },
-  }
+  } satisfies BetterAuthOptions
 }

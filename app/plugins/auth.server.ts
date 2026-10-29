@@ -12,12 +12,12 @@ export default defineNuxtPlugin({
       if (!event || getSessionCookie(event.headers) === null)
         return
 
-      const session = useState('auth:session', () => null)
-      const user = useState('auth:user', () => null)
+      const session = useState<unknown>('auth:session', () => null)
+      const user = useState<unknown>('auth:user', () => null)
       const { getAuthSession } = await import('#layers/auth/server/utils/session')
       const data = await getAuthSession(event)
       session.value = sessionForClient(data?.session)
-      user.value = (data?.user ?? null) as typeof user.value
+      user.value = data?.user ?? null
     }
   },
 })
