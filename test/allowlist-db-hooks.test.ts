@@ -139,6 +139,35 @@ describe('allowlist database hooks', () => {
       expect(db.session).toHaveLength(1)
     })
 
+    it('links Google to an existing user with a verified email', async () => {
+      const { auth, db } = createAuth()
+      await post(auth, '/sign-up/email', { email: 'g@example.com', password, name: 'A' })
+      // Magic-link users always have a verified email.
+      db.user[0].emailVerified = true
+      const res = await signInWithGoogle(auth, 'g@example.com')
+      expect(res.headers.get('location')).toBe('/admin')
+      expect(db.user).toHaveLength(1)
+      expect(db.account.map(account => account.providerId)).toEqual(['credential', 'google'])
+    })
+
+    it('does not link Google to an existing user with an unverified email', async () => {
+      const { auth, db } = createAuth()
+      await post(auth, '/sign-up/email', { email: 'g@example.com', password, name: 'A' })
+      const res = await signInWithGoogle(auth, 'g@example.com')
+      expect(res.headers.get('location')).toBe('/auth/error?error=account_not_linked')
+      expect(db.account.map(account => account.providerId)).toEqual(['credential'])
+    })
+
+    it('sends a user who cancels on Google to the error page', async () => {
+      const { auth, db } = createAuth()
+      const start = await post(auth, '/sign-in/social', { provider: 'google', callbackURL: '/admin', errorCallbackURL: '/auth/error' })
+      const state = new URL((await start.json()).url).searchParams.get('state')!
+      const cookies = start.headers.getSetCookie().map(cookie => cookie.split(';')[0]).join('; ')
+      const res = await auth.handler(new Request(`${baseURL}/api/auth/callback/google?error=access_denied&state=${state}`, { headers: { cookie: cookies } }))
+      expect(res.headers.get('location')).toBe('/auth/error?error=access_denied')
+      expect(db.user).toHaveLength(0)
+    })
+
     it('rejects a disallowed Google account without creating the user', async () => {
       runtimeAuth.allowedEmails = 'g@example.com'
       const { auth, db } = createAuth()

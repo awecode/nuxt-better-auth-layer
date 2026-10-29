@@ -35,10 +35,12 @@ const ERROR_MESSAGES: Record<string, string> = {
   INVALID_TOKEN: 'This login link is invalid or was already used. Email scanners often open links before you do, which can burn a one-time link. Request a new link, or paste the token from the email on the login page.',
   EXPIRED_TOKEN: 'This login link has expired. Request a new one from the login page.',
   NOT_AUTHORIZED: 'This account is not allowed to log in.',
+  access_denied: 'Google login was cancelled.',
+  account_not_linked: 'This email already has an account. Log in with your email link first.',
 }
 
 const message = computed(() => {
   const code = typeof route.query.error === 'string' ? route.query.error : ''
-  return ERROR_MESSAGES[code] || 'Something went wrong while signing in. Request a new login link and try again.'
+  return ERROR_MESSAGES[code] || 'Something went wrong while signing in. Try again.'
 })
 </script>
