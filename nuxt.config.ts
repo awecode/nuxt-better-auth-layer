@@ -18,6 +18,7 @@ export default defineNuxtConfig({
       adminOnlyApiRoutes: process.env.NUXT_AUTH_ADMIN_ONLY_API_ROUTES || '',
       googleClientId: process.env.NUXT_AUTH_GOOGLE_CLIENT_ID || '',
       googleClientSecret: process.env.NUXT_AUTH_GOOGLE_CLIENT_SECRET || '',
+      magicLinkSubject: process.env.NUXT_AUTH_MAGIC_LINK_SUBJECT || 'Log in to your account',
     },
     ses: {
       region: process.env.NUXT_SES_REGION || 'us-east-1',

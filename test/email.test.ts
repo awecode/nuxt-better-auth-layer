@@ -16,7 +16,9 @@ const ses = {
 
 let template: string | null = '<p>Hi {{ email }}</p><a href="{{ url }}">Log in</a><div>{{ token }}</div><p>{{ useragent }}</p>'
 
-vi.stubGlobal('useRuntimeConfig', () => ({ ses }))
+const auth = { magicLinkSubject: 'Log in to your account' }
+
+vi.stubGlobal('useRuntimeConfig', () => ({ ses, auth }))
 vi.stubGlobal('useStorage', () => ({
   getItem: async () => template,
 }))
@@ -102,5 +104,13 @@ describe('sendMagicLinkEmail', () => {
     expect(params.html).toContain('Firefox, Linux')
     expect(params.message).toContain('Log in - https://example.com/verify')
     expect(params.message).toContain('tok-1')
+  })
+
+  it('uses the subject from runtime config', async () => {
+    ses.secretKey = 'secret'
+    auth.magicLinkSubject = 'Sign in to Quillbind'
+    await sendMagicLinkEmail('a@example.com', 'tok-1', 'https://example.com/verify')
+    expect(sendSesEmail.mock.calls.at(-1)[0].subject).toBe('Sign in to Quillbind')
+    auth.magicLinkSubject = 'Log in to your account'
   })
 })

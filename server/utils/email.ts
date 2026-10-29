@@ -81,7 +81,7 @@ export function getUserAgentInfo(ua: string): string {
 }
 
 export const sendMagicLinkEmail = async (email: string, token: string, url: string, request?: GenericEndpointContext) => {
-  const { ses } = useRuntimeConfig()
+  const { ses, auth } = useRuntimeConfig()
 
   let backend
   if (ses.secretKey) {
@@ -122,7 +122,7 @@ export const sendMagicLinkEmail = async (email: string, token: string, url: stri
   const text = htmlToText(html)
   await backend({
     toEmails: [email],
-    subject: 'Log in to your account',
+    subject: auth.magicLinkSubject,
     html,
     message: text,
   })

@@ -131,6 +131,8 @@ NUXT_SES_REGION=us-east-1
 NUXT_SES_ACCESS_KEY_ID=your_access_key_id
 NUXT_SES_SECRET_KEY=your_secret_key
 NUXT_SES_FROM_EMAIL=noreply@example.com
+# Magic link email subject (optional - default "Log in to your account")
+NUXT_AUTH_MAGIC_LINK_SUBJECT="Sign in to Example"
 
 # Database provider (optional - pg by default, sqlite for SQLite or D1)
 NUXT_AUTH_DB_PROVIDER=sqlite
@@ -405,7 +407,7 @@ The allowlist, admin emails, account linking, and error page work for every prov
 
 ## Email Templates
 
-The default magic link email template is `server/assets/magic-link.html` in this layer. To override it, add `server/assets/magic-link.html` in the host app.
+The default magic link email template is `server/assets/magic-link.html` in this layer. To override it, add `server/assets/magic-link.html` in the host app. Set the subject with `NUXT_AUTH_MAGIC_LINK_SUBJECT` (or `runtimeConfig.auth.magicLinkSubject`); the default is "Log in to your account".
 
 Available template variables:
 - `{{email}}` - User's email
