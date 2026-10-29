@@ -14,6 +14,8 @@ export default defineNuxtConfig({
       adminEmails: process.env.NUXT_AUTH_ADMIN_EMAILS || '',
       authenticatedOnlyApiRoutes: process.env.NUXT_AUTH_AUTHENTICATED_ONLY_API_ROUTES || '',
       adminOnlyApiRoutes: process.env.NUXT_AUTH_ADMIN_ONLY_API_ROUTES || '',
+      googleClientId: process.env.NUXT_AUTH_GOOGLE_CLIENT_ID || '',
+      googleClientSecret: process.env.NUXT_AUTH_GOOGLE_CLIENT_SECRET || '',
     },
     ses: {
       region: process.env.NUXT_SES_REGION || 'us-east-1',
