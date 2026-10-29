@@ -28,7 +28,7 @@ Nuxt registers `layers/*` on its own.
 
 ### Configure better-auth
 
-The layer provides a default configuration for better-auth in `server/utils/auth.config.ts`. Edit that file in a local `layers/auth` copy when you need to change it. Client configuration is in `composables/auth.client.config.ts`.
+The layer provides a default configuration for better-auth in `server/utils/auth.config.ts`. To change it, add `server/auth.options.ts` to the app (see [Customize better-auth](#customize-better-auth)) instead of editing the layer. Client configuration is in `composables/auth.client.config.ts`.
 
 The default configuration uses the drizzle adapter with Postgres. For SQLite or D1, set `NUXT_AUTH_DB_PROVIDER=sqlite` in `.env` (`mysql` also works). Use the env var rather than `runtimeConfig`, because the better-auth CLI reads `.env` but not `nuxt.config.ts`. The app's `server/utils/db.ts` must export:
 
@@ -37,6 +37,43 @@ The default configuration uses the drizzle adapter with Postgres. For SQLite or 
 - `Db`: the client type.
 
 `useServerAuth(event)` builds one better-auth instance per request on `useDb(event)` and caches it on `event.context.betterAuth`. `createAuthConfig(db)` receives that database and never calls `useDb()` itself.
+
+### Customize better-auth
+
+Add `server/auth.options.ts` to the app and export better-auth options. The layer merges them into its configuration:
+
+```ts
+import type { BetterAuthOptions } from 'better-auth'
+import { createAuthMiddleware } from 'better-auth/api'
+import { genericOAuth } from 'better-auth/plugins/generic-oauth'
+
+export default {
+  rateLimit: { enabled: true, window: 60, max: 100 },
+  plugins: [genericOAuth({ config: [/* providers */] })],
+  hooks: {
+    // Runs before the layer's allowlist check.
+    before: createAuthMiddleware(async (ctx) => {
+      if (typeof ctx.body?.email === 'string')
+        ctx.body.email = ctx.body.email.trim().toLowerCase()
+    }),
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        // Runs after the layer's allowlist and admin-role hook.
+        before: async user => ({ data: { ...user, role: user.role === 'admin' ? 'admin' : 'staff' } }),
+      },
+    },
+  },
+} satisfies BetterAuthOptions
+```
+
+- `plugins` are added after the layer's, before `customSession` (which stays last). Their API methods are typed on `useServerAuth(event).api`. Use `satisfies BetterAuthOptions`, not a `: BetterAuthOptions` annotation, which drops those types.
+- `socialProviders` are added to Google from env.
+- `hooks` and `databaseHooks` run alongside the layer's own. Your request hook runs before the allowlist, so it can normalize input. Your database hooks run after the allowlist and admin-role hooks: a disallowed user never reaches them, and `role` is already `admin` for `NUXT_AUTH_ADMIN_EMAILS`.
+- Any other option replaces the layer's default.
+
+The layer finds the file through the `#auth-options` alias. Restart the dev server after creating it.
 
 ## Migrate database
 
@@ -317,7 +354,7 @@ NUXT_AUTH_ALLOWED_EMAILS=admin@example.com,user@company.org
 
 When both are set, an email that matches either list is allowed: `NUXT_AUTH_ALLOWED_DOMAINS=company.com` with `NUXT_AUTH_ALLOWED_EMAILS=contractor@gmail.com` lets in everyone at company.com plus that one contractor. `*` in either variable allows everyone.
 
-The checks are wired in `server/utils/auth.config.ts`:
+The checks are the `allowlist` plugin in `server/utils/auth.config.ts`, so an app's own hooks add to them instead of replacing them:
 
 - A request hook (`allowListedSignup`) rejects magic-link requests for a disallowed address before any email is sent.
 - Database hooks (`allowListedEmail`) run for every sign-in method, Google and other OAuth providers included. The user hook stops disallowed sign-ups. The session hook stops existing users whose email was removed from the lists. Sessions that already exist stay valid until they expire or are revoked.
@@ -360,7 +397,7 @@ await useAuth().client.signIn.social({ provider: 'google', callbackURL: '/dashbo
 
 ### Other providers
 
-1. Add the provider to `socialProviders` in `server/utils/auth.config.ts` ([provider list](https://www.better-auth.com/docs/concepts/oauth), for example [GitHub](https://www.better-auth.com/docs/authentication/github)). For a generic OpenID Connect provider (Keycloak, Authentik, an Azure tenant), use the [`genericOAuth` plugin](https://www.better-auth.com/docs/plugins/generic-oauth) instead.
+1. Add the provider to `socialProviders` in the app's `server/auth.options.ts` (see [Customize better-auth](#customize-better-auth); [provider list](https://www.better-auth.com/docs/concepts/oauth), for example [GitHub](https://www.better-auth.com/docs/authentication/github)). For a generic OpenID Connect provider (Keycloak, Authentik, an Azure tenant), add the [`genericOAuth` plugin](https://www.better-auth.com/docs/plugins/generic-oauth) to `plugins` instead.
 2. Register `<BETTER_AUTH_URL>/api/auth/callback/<provider>` as the redirect URI in the provider's console.
 3. Add a button: `useAuth().client.signIn.social({ provider: '<provider>' })`. `MagicLinkLogin` only has the Google one.
 

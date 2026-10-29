@@ -1,6 +1,5 @@
 import { betterAuth } from 'better-auth'
 import { memoryAdapter } from 'better-auth/adapters/memory'
-import { admin } from 'better-auth/plugins'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const runtimeAuth = { allowedDomains: '', allowedEmails: '', adminEmails: '' }
@@ -14,21 +13,18 @@ const { createAuthConfig } = await import('../server/utils/auth.config')
 
 const baseURL = 'https://app.example.com'
 
-// The layer's own hooks from createAuthConfig, on an in-memory database.
+// The layer's config from createAuthConfig, on an in-memory database.
 // Email/password sign-in has no request hook, so it shows the database hooks
 // alone cover sign-in methods other than the magic link.
 function createAuth() {
   const db = { user: [], session: [], account: [], verification: [] } as Record<string, Record<string, unknown>[]>
-  const { hooks, databaseHooks } = createAuthConfig({ id: 'db' })
   const auth = betterAuth({
+    ...createAuthConfig({ id: 'db' }),
     baseURL,
     secret: 'test-secret-that-is-long-enough-for-better-auth',
     database: memoryAdapter(db),
     emailAndPassword: { enabled: true },
-    plugins: [admin()],
     socialProviders: { google: { clientId: 'id', clientSecret: 'secret' } },
-    hooks,
-    databaseHooks,
   })
   return { auth, db }
 }

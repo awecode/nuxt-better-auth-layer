@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -43,6 +44,14 @@ export default defineNuxtConfig({
       asyncContext: true,
     },
   },
+  modules: [
+    // #auth-options is the app's server/auth.options.ts (extra better-auth
+    // plugins, hooks and options), or the layer's empty default.
+    (_options, nuxt) => {
+      const appOptions = join(nuxt.options.serverDir, 'auth.options.ts')
+      nuxt.options.alias['#auth-options'] = existsSync(appOptions) ? appOptions : join(currentDir, 'server/auth.options.ts')
+    },
+  ],
   hooks: {
     'nitro:config'(nitroConfig) {
       nitroConfig.serverAssets = nitroConfig.serverAssets || []
