@@ -8,6 +8,7 @@ import type { Db } from '~~/server/utils/db'
 import { sendMagicLinkEmail } from './email'
 import { toMagicLinkConfirmUrl } from './magicLinkConfirmUrl'
 import { getSocialProviders } from './socialProviders'
+import { getDbProvider } from './dbProvider'
 import type { BetterAuthOptions } from 'better-auth'
 
 export function createAuthConfig(db: Db) {
@@ -39,7 +40,8 @@ export function createAuthConfig(db: Db) {
       }), { plugins: [admin()] }),
     ],
     database: drizzleAdapter(db, {
-      provider: 'pg',
+      // pg by default. Set NUXT_AUTH_DB_PROVIDER=sqlite for SQLite or D1.
+      provider: getDbProvider(),
       usePlural: true,
     }),
     // Allowlist from NUXT_AUTH_ALLOWED_EMAILS and NUXT_AUTH_ALLOWED_DOMAINS.

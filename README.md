@@ -30,7 +30,7 @@ Nuxt registers `layers/*` on its own.
 
 The layer provides a default configuration for better-auth in `server/utils/auth.config.ts`. Edit that file in a local `layers/auth` copy when you need to change it. Client configuration is in `composables/auth.client.config.ts`.
 
-The default configuration uses the drizzle adapter. The app's `server/utils/db.ts` must export:
+The default configuration uses the drizzle adapter with Postgres. For SQLite or D1, set `NUXT_AUTH_DB_PROVIDER=sqlite` in `.env` (`mysql` also works). Use the env var rather than `runtimeConfig`, because the better-auth CLI reads `.env` but not `nuxt.config.ts`. The app's `server/utils/db.ts` must export:
 
 - `useDb(event)`: the request's drizzle client.
 - `createDbClient({ url })`: a new client, used by the better-auth CLI outside Nuxt.
@@ -58,7 +58,7 @@ Add the scripts (`db:*` match the `nuxt-database` skill):
 }
 ```
 
-Point `--config` at this layer's `server/utils/auth.ts` (`layers/auth/...` for a local copy, or the downloaded layer under `node_modules/.c12` for a GitHub extend). The CLI loads `.env` and needs `NUXT_DATABASE_URL`, plus `BETTER_AUTH_URL` or `NUXT_PUBLIC_BASE_URL`.
+Point `--config` at this layer's `server/utils/auth.ts` (`layers/auth/...` for a local copy, or the downloaded layer under `node_modules/.c12` for a GitHub extend). The CLI loads `.env` and needs `NUXT_DATABASE_URL` (and `NUXT_AUTH_DB_PROVIDER` for SQLite), plus `BETTER_AUTH_URL` or `NUXT_PUBLIC_BASE_URL`.
 
 Re-export the generated tables from `server/db/schema.ts`:
 
@@ -94,6 +94,9 @@ NUXT_SES_REGION=us-east-1
 NUXT_SES_ACCESS_KEY_ID=your_access_key_id
 NUXT_SES_SECRET_KEY=your_secret_key
 NUXT_SES_FROM_EMAIL=noreply@example.com
+
+# Database provider (optional - pg by default, sqlite for SQLite or D1)
+NUXT_AUTH_DB_PROVIDER=sqlite
 
 # Who can log in (required: nobody can log in until one is set, see below)
 NUXT_AUTH_ALLOWED_DOMAINS=example.com,company.org

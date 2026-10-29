@@ -9,6 +9,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     auth: {
+      dbProvider: process.env.NUXT_AUTH_DB_PROVIDER || 'pg',
       allowedDomains: process.env.NUXT_AUTH_ALLOWED_DOMAINS || '',
       allowedEmails: process.env.NUXT_AUTH_ALLOWED_EMAILS || '',
       adminEmails: process.env.NUXT_AUTH_ADMIN_EMAILS || '',
