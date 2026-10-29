@@ -2,8 +2,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { magicLink, bearer, admin, customSession } from 'better-auth/plugins'
 import { sessionForClient } from '../../shared/sessionForClient'
 import { createAuthMiddleware } from 'better-auth/api'
-import { allowListedEmail, allowListedSignup, sessionUserEmail } from '../lib/hook-utils'
-// import { setAdminForEmail } from '../lib/hook-utils'
+import { allowListedEmail, allowListedSignup, sessionUserEmail, setAdminForEmail } from '../lib/hook-utils'
 import type { Db } from '~~/server/utils/db'
 
 import { sendMagicLinkEmail } from './email'
@@ -57,8 +56,8 @@ export function createAuthConfig(db: Db) {
         create: {
           before: async (user, ctx) => {
             allowListedEmail(user.email, ctx)
-            // Automatically set admin role for configured emails
-            // return setAdminForEmail(user)
+            // Admin role for emails in NUXT_AUTH_ADMIN_EMAILS (new users only)
+            return setAdminForEmail(user)
           },
         },
       },

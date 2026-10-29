@@ -1,5 +1,6 @@
 import { betterAuth } from 'better-auth'
 import { memoryAdapter } from 'better-auth/adapters/memory'
+import { admin } from 'better-auth/plugins'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const runtimeAuth = { allowedDomains: '', allowedEmails: '', adminEmails: '' }
@@ -24,6 +25,7 @@ function createAuth() {
     secret: 'test-secret-that-is-long-enough-for-better-auth',
     database: memoryAdapter(db),
     emailAndPassword: { enabled: true },
+    plugins: [admin()],
     socialProviders: { google: { clientId: 'id', clientSecret: 'secret' } },
     hooks,
     databaseHooks,
@@ -78,6 +80,16 @@ describe('allowlist database hooks', () => {
     const res = await post(auth, '/sign-up/email', { email: 'a@example.com', password, name: 'A' })
     expect(res.status).toBe(200)
     expect(db.user).toHaveLength(1)
+  })
+
+  it('gives the admin role to a new user in NUXT_AUTH_ADMIN_EMAILS only', async () => {
+    runtimeAuth.adminEmails = 'boss@example.com'
+    const { auth, db } = createAuth()
+    await post(auth, '/sign-up/email', { email: 'boss@example.com', password, name: 'Boss' })
+    await post(auth, '/sign-up/email', { email: 'staff@example.com', password, name: 'Staff' })
+    expect(db.user.find(user => user.email === 'boss@example.com')?.role).toBe('admin')
+    expect(db.user.find(user => user.email === 'staff@example.com')?.role).toBe('user')
+    runtimeAuth.adminEmails = ''
   })
 
   it('rejects a disallowed sign-up without creating the user', async () => {

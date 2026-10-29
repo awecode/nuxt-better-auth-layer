@@ -315,7 +315,7 @@ The checks are wired in `server/utils/auth.config.ts`:
 - A rejected OAuth login redirects to `redirectErrorTo` with `?error=NOT_AUTHORIZED` instead of showing a JSON error.
 
 ### Admin Role Assignment
-Automatically assign admin role to specific email addresses during user creation. Uncomment the `setAdminForEmail` line in the user create hook in `server/utils/auth.config.ts` to enable it:
+Automatically assign admin role to specific email addresses during user creation. It only applies to new users: adding an email later does not promote an existing user (use the admin plugin or the database for that).
 
 ```bash
 # Automatically set admin role for these email addresses
