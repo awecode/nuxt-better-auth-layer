@@ -102,6 +102,11 @@ NUXT_AUTH_ALLOWED_EMAILS=admin@example.com,user@company.org
 # NUXT_AUTH_ALLOWED_EMAILS=*
 NUXT_AUTH_ADMIN_EMAILS=admin@example.com,superuser@company.org
 
+# Google login (optional - set all three together, see below)
+NUXT_AUTH_GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+NUXT_AUTH_GOOGLE_CLIENT_SECRET=your_client_secret
+NUXT_PUBLIC_AUTH_GOOGLE_LOGIN=true
+
 # API route protection (optional - see below)
 NUXT_AUTH_AUTHENTICATED_ONLY_API_ROUTES=/api/user,/api/profile
 NUXT_AUTH_ADMIN_ONLY_API_ROUTES=/api/admin,/api/management
@@ -133,6 +138,7 @@ const {
 
 ### MagicLinkLogin
 Email-based authentication component. Sends both a clickable link and a one-time token that users can enter manually.
+When [Google login](#google-login) is enabled, it also shows a "Continue with Google" button above the email form.
 
 ```vue
 <template>
@@ -322,6 +328,38 @@ Automatically assign admin role to specific email addresses during user creation
 NUXT_AUTH_ADMIN_EMAILS=admin@example.com,superuser@company.org
 ```
 
+
+## Google Login
+
+Google login is off by default. To turn it on:
+
+1. In the [Google Cloud console](https://console.cloud.google.com/apis/credentials), create an OAuth client ID of type **Web application**.
+2. Add the authorized redirect URI `<BETTER_AUTH_URL>/api/auth/callback/google`, for example `https://example.com/api/auth/callback/google`. Add `http://localhost:3000/api/auth/callback/google` too if you test locally.
+3. Set all three variables:
+
+```bash
+NUXT_AUTH_GOOGLE_CLIENT_ID=your_client_id.apps.googleusercontent.com
+NUXT_AUTH_GOOGLE_CLIENT_SECRET=your_client_secret
+NUXT_PUBLIC_AUTH_GOOGLE_LOGIN=true
+```
+
+The two credentials turn on the provider on the server. Setting only one of them fails at startup. `NUXT_PUBLIC_AUTH_GOOGLE_LOGIN` shows the button in `MagicLinkLogin`: it is separate because the browser cannot read the private credentials. Without the credentials, the button fails with "provider not found".
+
+On Cloudflare Workers, store `NUXT_AUTH_GOOGLE_CLIENT_SECRET` as a secret, and set the other two as vars.
+
+The [allowlist](#access-restrictions-by-email-address-or-domain) applies to Google logins too. A rejected account is sent to `redirectErrorTo` with `?error=NOT_AUTHORIZED`.
+
+To sign in from your own UI instead of `MagicLinkLogin`:
+
+```ts
+await useAuth().client.signIn.social({ provider: 'google', callbackURL: '/dashboard' })
+```
+
+### Other providers
+
+Add other better-auth providers (GitHub, Microsoft, and so on) to `socialProviders` in `server/utils/auth.config.ts`. Their callback is `<BETTER_AUTH_URL>/api/auth/callback/<provider>`, and the allowlist covers them too. `MagicLinkLogin` only has a Google button, so add your own for other providers.
+
+For a generic OpenID Connect provider (Keycloak, Authentik, an Azure tenant), use better-auth's `genericOAuth` plugin. It uses the same sign-in (`signIn.social({ provider: '<providerId>' })`) and callback (`<BETTER_AUTH_URL>/api/auth/callback/<providerId>`) as the built-in providers.
 
 ## Email Templates
 
