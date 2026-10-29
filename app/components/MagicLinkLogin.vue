@@ -1,6 +1,16 @@
 <template>
   <div
     class="w-full max-w-md border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100">
+    <div v-if="!sent && auth.googleLogin" class="mb-4 space-y-4">
+      <button
+        class="w-full rounded-md border border-neutral-300 bg-white px-4 py-2 text-neutral-900 transition disabled:cursor-not-allowed disabled:opacity-70 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+        :disabled="isRedirecting" type="button" @click="signInWithGoogle">
+        {{ isRedirecting ? 'Redirecting…' : 'Continue with Google' }}
+      </button>
+      <p class="text-center text-xs text-neutral-500">
+        or
+      </p>
+    </div>
     <form v-if="sent" class="space-y-4" @submit.prevent="verifyToken">
       <h1 class="text-lg font-semibold">
         Check your email
@@ -75,6 +85,7 @@ const sent = ref(false)
 const errorMessage = ref('')
 const token = ref('')
 const isVerifying = ref(false)
+const isRedirecting = ref(false)
 const { public: { auth } } = useRuntimeConfig()
 
 const redirectTo = computed(() => {
@@ -111,6 +122,22 @@ const signInWithMagicLink = async () => {
     sent.value = true
   }
   isLoading.value = false
+}
+
+const signInWithGoogle = async () => {
+  isRedirecting.value = true
+  errorMessage.value = ''
+  // On success the client navigates to Google, so the page unloads.
+  const { error } = await client.signIn.social({
+    provider: 'google',
+    callbackURL: redirectTo.value || auth.redirectUserTo,
+    newUserCallbackURL: redirectTo.value || auth.redirectNewUserTo || auth.redirectUserTo,
+    errorCallbackURL: auth.redirectErrorTo,
+  })
+  if (error) {
+    errorMessage.value = error.message || 'Failed to start Google login'
+    isRedirecting.value = false
+  }
 }
 
 const verifyToken = async () => {

@@ -30,6 +30,8 @@ export default defineNuxtConfig({
         redirectErrorTo: '/auth/error',
         redirectGuestTo: '/login',
         authRequiredByDefault: true,
+        // Shows the Google button on the login page. Set NUXT_PUBLIC_AUTH_GOOGLE_LOGIN=true with the Google credentials.
+        googleLogin: false,
       },
     },
   }, alias: {
