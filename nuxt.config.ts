@@ -16,6 +16,11 @@ export default defineNuxtConfig({
       adminEmails: process.env.NUXT_AUTH_ADMIN_EMAILS || '',
       authenticatedOnlyApiRoutes: process.env.NUXT_AUTH_AUTHENTICATED_ONLY_API_ROUTES || '',
       adminOnlyApiRoutes: process.env.NUXT_AUTH_ADMIN_ONLY_API_ROUTES || '',
+      // Copies of the two settings above as set in nuxt.config (filled at build
+      // time, see the nitro:config hook). The middleware uses them when the env
+      // var is empty.
+      authenticatedOnlyApiRoutesDefault: '',
+      adminOnlyApiRoutesDefault: '',
       googleClientId: process.env.NUXT_AUTH_GOOGLE_CLIENT_ID || '',
       googleClientSecret: process.env.NUXT_AUTH_GOOGLE_CLIENT_SECRET || '',
       magicLinkSubject: process.env.NUXT_AUTH_MAGIC_LINK_SUBJECT || 'Log in to your account',
@@ -55,6 +60,11 @@ export default defineNuxtConfig({
   ],
   hooks: {
     'nitro:config'(nitroConfig) {
+      // A NUXT_AUTH_*_ONLY_API_ROUTES env var replaces runtimeConfig even when
+      // it is empty, so keep the nuxt.config routes for the middleware to fall back to.
+      const auth = nitroConfig.runtimeConfig!.auth
+      auth.authenticatedOnlyApiRoutesDefault = auth.authenticatedOnlyApiRoutes
+      auth.adminOnlyApiRoutesDefault = auth.adminOnlyApiRoutes
       nitroConfig.serverAssets = nitroConfig.serverAssets || []
       nitroConfig.serverAssets.push({
         baseName: 'auth',

@@ -29,8 +29,9 @@ export default defineEventHandler(async (event) => {
   const path = requestPath(event.path)
   const config = useRuntimeConfig()
   const authConfig = config.auth
-  const authenticatedOnly = parsePaths(authConfig.authenticatedOnlyApiRoutes)
-  const adminOnly = parsePaths(authConfig.adminOnlyApiRoutes)
+  // An empty env var can't clear the routes set in nuxt.config.
+  const authenticatedOnly = parsePaths(authConfig.authenticatedOnlyApiRoutes || authConfig.authenticatedOnlyApiRoutesDefault)
+  const adminOnly = parsePaths(authConfig.adminOnlyApiRoutes || authConfig.adminOnlyApiRoutesDefault)
 
   const isAdminRoute = matchesAnyPrefix(path, adminOnly)
   const isAuthenticatedRoute = matchesAnyPrefix(path, authenticatedOnly)

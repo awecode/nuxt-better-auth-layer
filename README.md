@@ -268,7 +268,7 @@ export default defineNuxtConfig({
 })
 ```
 
- - You can also use the `NUXT_AUTH_AUTHENTICATED_ONLY_API_ROUTES` and `NUXT_AUTH_ADMIN_ONLY_API_ROUTES` environment variables to set the routes.
+ - You can also use the `NUXT_AUTH_AUTHENTICATED_ONLY_API_ROUTES` and `NUXT_AUTH_ADMIN_ONLY_API_ROUTES` environment variables to set the routes. A non-empty variable replaces the routes from nuxt config. An empty one is ignored, so it can't open them.
  - Protecting `/api/user` will also protect `/api/user` and anything under it like `/api/user/profile` and `/api/user/settings` but won't protect something like `/api/user-registration`.
 
 ### Individual Route Protection

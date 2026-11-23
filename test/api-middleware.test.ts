@@ -9,6 +9,8 @@ vi.mock('../server/utils/session', () => ({
 const authConfig = {
   authenticatedOnlyApiRoutes: '/api/private',
   adminOnlyApiRoutes: '/api/admin',
+  authenticatedOnlyApiRoutesDefault: '',
+  adminOnlyApiRoutesDefault: '',
 }
 
 vi.stubGlobal('defineEventHandler', (handler: unknown) => handler)
@@ -50,6 +52,23 @@ describe('auth API middleware', () => {
     getSession.mockResolvedValue(member)
     authConfig.authenticatedOnlyApiRoutes = '/api/private'
     authConfig.adminOnlyApiRoutes = '/api/admin'
+    authConfig.authenticatedOnlyApiRoutesDefault = ''
+    authConfig.adminOnlyApiRoutesDefault = ''
+  })
+
+  it('uses the nuxt.config routes when the env var is empty', async () => {
+    authConfig.adminOnlyApiRoutes = ''
+    authConfig.adminOnlyApiRoutesDefault = '/api/autoadmin'
+    await expect(middleware(request('/api/autoadmin/users'))).rejects.toMatchObject({ statusCode: 401 })
+    await expect(middleware(request('/api/autoadmin/users', sessionCookie))).rejects.toMatchObject({ statusCode: 403 })
+  })
+
+  it('lets a non-empty env var replace the nuxt.config routes', async () => {
+    authConfig.adminOnlyApiRoutes = '/api/admin'
+    authConfig.adminOnlyApiRoutesDefault = '/api/autoadmin'
+    const event = request('/api/autoadmin/users', sessionCookie)
+    await middleware(event)
+    expect(getSession).not.toHaveBeenCalled()
   })
 
   it('does not load a session for a public path', async () => {
