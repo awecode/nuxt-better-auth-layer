@@ -78,13 +78,18 @@ describe('allowlist database hooks', () => {
     expect(db.user).toHaveLength(1)
   })
 
-  it('gives the admin role to a new user in NUXT_AUTH_ADMIN_EMAILS only', async () => {
-    runtimeAuth.adminEmails = 'boss@example.com'
+  it('gives the admin role to a new verified user in NUXT_AUTH_ADMIN_EMAILS only', async () => {
+    runtimeAuth.adminEmails = 'boss@example.com,unverified@example.com'
     const { auth, db } = createAuth()
-    await post(auth, '/sign-up/email', { email: 'boss@example.com', password, name: 'Boss' })
-    await post(auth, '/sign-up/email', { email: 'staff@example.com', password, name: 'Staff' })
+    // Verified, as the magic link creates users
+    const { internalAdapter } = await auth.$context
+    await internalAdapter.createUser({ email: 'boss@example.com', name: 'Boss', emailVerified: true })
+    await internalAdapter.createUser({ email: 'staff@example.com', name: 'Staff', emailVerified: true })
+    // Email sign-up creates an unverified user
+    await post(auth, '/sign-up/email', { email: 'unverified@example.com', password, name: 'U' })
     expect(db.user.find(user => user.email === 'boss@example.com')?.role).toBe('admin')
     expect(db.user.find(user => user.email === 'staff@example.com')?.role).toBe('user')
+    expect(db.user.find(user => user.email === 'unverified@example.com')?.role).toBe('user')
     runtimeAuth.adminEmails = ''
   })
 

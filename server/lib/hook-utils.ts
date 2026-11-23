@@ -76,7 +76,8 @@ export const sessionUserEmail = async (session: Session, ctx: GenericEndpointCon
  * @returns User object with admin role set if email is in NUXT_AUTH_ADMIN_EMAILS environment variable
  */
 export const setAdminForEmail = (user: User) => {
-  if (list(authConfig().adminEmails).includes(user.email.toLowerCase())) {
+  // Only a verified email: a social sign-in can report an unverified one
+  if (user.emailVerified && list(authConfig().adminEmails).includes(user.email.toLowerCase())) {
     return {
       data: {
         ...user,

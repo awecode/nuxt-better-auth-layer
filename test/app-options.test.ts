@@ -90,7 +90,8 @@ describe('app options', () => {
   it('runs the app user hook after the layer allows the user', async () => {
     const { auth, db } = createAuth()
     expect((await signUp(auth, 'a@example.com')).status).toBe(200)
-    expect((await signUp(auth, 'boss@example.com')).status).toBe(200)
+    // Verified, as the magic link creates users: the layer makes boss admin
+    await (await auth.$context).internalAdapter.createUser({ email: 'boss@example.com', name: 'Boss', emailVerified: true })
     expect(db.user.map(user => [user.email, user.role])).toEqual([['a@example.com', 'staff'], ['boss@example.com', 'admin']])
   })
 

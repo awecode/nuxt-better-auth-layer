@@ -363,7 +363,7 @@ The checks are the `allowlist` plugin in `server/utils/auth.config.ts`, so an ap
 - A rejected OAuth login redirects to `redirectErrorTo` with `?error=NOT_AUTHORIZED` instead of showing a JSON error.
 
 ### Admin Role Assignment
-Automatically assign admin role to specific email addresses during user creation. It only applies to new users: adding an email later does not promote an existing user (use the admin plugin or the database for that).
+Automatically assign admin role to specific email addresses during user creation. The email must be verified (magic-link users always are; a social or OIDC provider may report an unverified one). It only applies to new users: adding an email later does not promote an existing user (use the admin plugin or the database for that).
 
 ```bash
 # Automatically set admin role for these email addresses

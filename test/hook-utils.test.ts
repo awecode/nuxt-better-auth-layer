@@ -116,7 +116,7 @@ describe('setAdminForEmail', () => {
   })
 
   it('sets the admin role for a configured email', () => {
-    const user = { id: '1', email: 'admin@example.com', name: 'Admin' }
+    const user = { id: '1', email: 'admin@example.com', name: 'Admin', emailVerified: true }
     expect(setAdminForEmail(user as Parameters<typeof setAdminForEmail>[0])).toEqual({
       data: {
         ...user,
@@ -127,12 +127,19 @@ describe('setAdminForEmail', () => {
 
   it('ignores case and spaces around list entries', () => {
     runtimeAuth.adminEmails = 'a@example.com, Admin@Example.com '
-    const user = { id: '1', email: 'admin@example.com', name: 'Admin' }
+    const user = { id: '1', email: 'admin@example.com', name: 'Admin', emailVerified: true }
     expect(setAdminForEmail(user as Parameters<typeof setAdminForEmail>[0]).data).toMatchObject({ role: 'admin' })
   })
 
   it('leaves other users unchanged', () => {
     const user = { id: '2', email: 'staff@example.com', name: 'Staff' }
+    expect(setAdminForEmail(user as Parameters<typeof setAdminForEmail>[0])).toEqual({
+      data: user,
+    })
+  })
+
+  it('does not make an unverified email admin', () => {
+    const user = { id: '3', email: 'admin@example.com', name: 'Admin', emailVerified: false }
     expect(setAdminForEmail(user as Parameters<typeof setAdminForEmail>[0])).toEqual({
       data: user,
     })
