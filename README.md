@@ -75,6 +75,18 @@ export default {
 
 The layer finds the file through the `#auth-options` alias. Restart the dev server after creating it.
 
+The layer imports the file once when the server starts, outside any request. At that point runtime config does not have its runtime env values yet (on Workers, the Worker variables arrive with the first request), and the better-auth schema CLI has no runtime config at all. An option that depends on runtime config (for example OIDC providers from an env var) must read it lazily, through a getter, which runs each time the layer builds an auth instance:
+
+```ts
+export default {
+  plugins: [genericOAuth({
+    get config() {
+      return providersFromRuntimeConfig()
+    },
+  })],
+} satisfies BetterAuthOptions
+```
+
 ## Migrate database
 
 Install the better-auth CLI (the `auth` package) as a dev dependency, so its version stays pinned next to `better-auth`:
