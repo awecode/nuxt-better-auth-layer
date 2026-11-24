@@ -25,6 +25,10 @@ function matchesAnyPrefix(path: string, prefixes: string[]) {
   return prefixes.some(prefix => matchesPrefix(path, normalizePath(prefix)))
 }
 
+function hasCredentials(headers: Headers) {
+  return getSessionCookie(headers) !== null || /^bearer\s+\S/i.test(headers.get('authorization') ?? '')
+}
+
 export default defineEventHandler(async (event) => {
   const path = requestPath(event.path)
   const config = useRuntimeConfig()
@@ -40,8 +44,9 @@ export default defineEventHandler(async (event) => {
     return
 
   // getAuthSession caches the session on event.context.auth and forwards
-  // refreshed session cookies to the browser.
-  const session = getSessionCookie(event.headers) !== null
+  // refreshed session cookies to the browser. A bearer token (the bearer
+  // plugin) counts as credentials too.
+  const session = hasCredentials(event.headers)
     ? await getAuthSession(event)
     : null
 

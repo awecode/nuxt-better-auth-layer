@@ -3,13 +3,14 @@ import { magicLink, bearer, admin, customSession } from 'better-auth/plugins'
 import { sessionForClient } from '../../shared/sessionForClient'
 import { createAuthMiddleware } from 'better-auth/api'
 import { allowListedEmail, allowListedSignup, sessionUserEmail, setAdminForEmail } from '../lib/hook-utils'
+import { getMagicLinkExpiresIn } from '../lib/magicLinkExpiresIn'
 import type { Db } from '~~/server/utils/db'
 
 import { sendMagicLinkEmail } from './email'
 import { toMagicLinkConfirmUrl } from './magicLinkConfirmUrl'
 import { getSocialProviders } from './socialProviders'
 import { getDbProvider } from './dbProvider'
-import type { BetterAuthOptions, BetterAuthPlugin } from 'better-auth'
+import type { BetterAuthOptions, BetterAuthPlugin, UnionToIntersection } from 'better-auth'
 import appOptions from '#auth-options'
 
 // Allowlist from NUXT_AUTH_ALLOWED_EMAILS and NUXT_AUTH_ALLOWED_DOMAINS.
@@ -59,6 +60,14 @@ export const allowlist = {
 type AppPlugins = typeof appOptions extends { plugins: infer P extends BetterAuthPlugin[] } ? P : []
 const appPlugins = ((appOptions as BetterAuthOptions).plugins ?? []) as AppPlugins
 
+// better-auth reads plugin user and session fields only from a tuple, and an
+// app's `plugins: [...]` is an array. A tuple of the same plugin types:
+type LastOf<U> = UnionToIntersection<U extends unknown ? (x: U) => void : never> extends (x: infer L) => void ? L : never
+type UnionToTuple<U, L = LastOf<U>> = [U] extends [never] ? [] : [...UnionToTuple<Exclude<U, L>>, L]
+// Only for types: customSession's second argument is not used at runtime.
+const adminForTypes = admin()
+type SessionPlugins = [typeof adminForTypes, ...UnionToTuple<AppPlugins[number]>]
+
 export function createAuthConfig(db: Db) {
   return {
     emailAndPassword: {
@@ -80,6 +89,8 @@ export function createAuthConfig(db: Db) {
       bearer(),
       admin(),
       magicLink({
+        // Seconds; NUXT_AUTH_MAGIC_LINK_EXPIRES_IN, default 300
+        expiresIn: getMagicLinkExpiresIn(),
         // Store a SHA-256 hash. The email still receives the plaintext token.
         storeToken: 'hashed',
         sendMagicLink: async ({ email, token, url }, request) => {
@@ -92,11 +103,13 @@ export function createAuthConfig(db: Db) {
       }),
       ...appPlugins,
       // Last plugin: replaces GET /get-session JSON so browsers never see session.token.
-      // The second argument only types `user` with the admin fields (role).
+      // The second argument is only for types: `user` and `session` keep the
+      // fields of the admin plugin and the app's plugins (such as
+      // session.activeOrganizationId from organization()).
       customSession(async ({ user, session }) => ({
         user,
         session: sessionForClient(session),
-      }), { plugins: [admin()] }),
+      }), { plugins: [admin(), ...appPlugins] as SessionPlugins }),
     ],
   } satisfies BetterAuthOptions
 }

@@ -24,6 +24,8 @@ export default defineNuxtConfig({
       googleClientId: process.env.NUXT_AUTH_GOOGLE_CLIENT_ID || '',
       googleClientSecret: process.env.NUXT_AUTH_GOOGLE_CLIENT_SECRET || '',
       magicLinkSubject: process.env.NUXT_AUTH_MAGIC_LINK_SUBJECT || 'Log in to your account',
+      // Seconds a magic link stays valid
+      magicLinkExpiresIn: process.env.NUXT_AUTH_MAGIC_LINK_EXPIRES_IN || 300,
     },
     ses: {
       region: process.env.NUXT_SES_REGION || 'us-east-1',
@@ -53,9 +55,13 @@ export default defineNuxtConfig({
   modules: [
     // #auth-options is the app's server/auth.options.ts (extra better-auth
     // plugins, hooks and options), or the layer's empty default.
+    // #auth-client-options is the app's app/auth.client.options.ts (extra
+    // better-auth client plugins), or the layer's empty default.
     (_options, nuxt) => {
       const appOptions = join(nuxt.options.serverDir, 'auth.options.ts')
       nuxt.options.alias['#auth-options'] = existsSync(appOptions) ? appOptions : join(currentDir, 'server/auth.options.ts')
+      const appClientOptions = join(nuxt.options.srcDir, 'auth.client.options.ts')
+      nuxt.options.alias['#auth-client-options'] = existsSync(appClientOptions) ? appClientOptions : join(currentDir, 'app/auth.client.options.ts')
     },
   ],
   hooks: {

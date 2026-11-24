@@ -3,7 +3,7 @@ import { memoryAdapter } from 'better-auth/adapters/memory'
 import { createAuthMiddleware } from 'better-auth/api'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const runtimeAuth = { allowedDomains: '', allowedEmails: '', adminEmails: '' }
+const runtimeAuth = { allowedDomains: '', allowedEmails: '', adminEmails: '', magicLinkExpiresIn: '900' as string | undefined }
 const appUserHook = vi.fn()
 vi.mock('../server/utils/email', () => ({ sendMagicLinkEmail: vi.fn() }))
 vi.mock('better-auth/adapters/drizzle', () => ({ drizzleAdapter: () => ({}) }))
@@ -77,6 +77,11 @@ describe('app options', () => {
     expect(ids.at(-1)).toBe('custom-session')
   })
 
+  it('sets the magic link lifetime from runtime config', () => {
+    const magicLink = createAuthConfig({ id: 'db' }).plugins.find(plugin => plugin.id === 'magic-link') as { options?: { expiresIn?: number } }
+    expect(magicLink.options?.expiresIn).toBe(900)
+  })
+
   it('adds app social providers to Google from env', () => {
     expect(Object.keys(createAuthConfig({ id: 'db' }).socialProviders)).toEqual(['google', 'github'])
   })
@@ -93,6 +98,14 @@ describe('app options', () => {
     // Verified, as the magic link creates users: the layer makes boss admin
     await (await auth.$context).internalAdapter.createUser({ email: 'boss@example.com', name: 'Boss', emailVerified: true })
     expect(db.user.map(user => [user.email, user.role])).toEqual([['a@example.com', 'staff'], ['boss@example.com', 'admin']])
+  })
+
+  it('reads the session from a bearer token', async () => {
+    const { auth } = createAuth()
+    const { token } = await (await signUp(auth, 'a@example.com')).json() as { token: string }
+    const session = await auth.api.getSession({ headers: new Headers({ authorization: `Bearer ${token}` }) })
+    expect(session?.user.email).toBe('a@example.com')
+    expect(session?.session).not.toHaveProperty('token')
   })
 
   it('never runs the app user hook for a disallowed email', async () => {

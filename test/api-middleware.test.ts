@@ -32,10 +32,12 @@ const middleware = (await import('../server/middleware/auth')).default as (event
   context: { auth?: unknown }
 }) => Promise<void>
 
-function request(path: string, cookie?: string) {
+function request(path: string, cookie?: string, authorization?: string) {
   const headers = new Headers()
   if (cookie)
     headers.set('cookie', cookie)
+  if (authorization)
+    headers.set('authorization', authorization)
   return {
     path,
     headers,
@@ -113,6 +115,18 @@ describe('auth API middleware', () => {
     await middleware(event)
     expect(getSession).toHaveBeenCalledOnce()
     expect(event.context.auth).toEqual(member)
+  })
+
+  it('loads the session for a bearer token without a cookie', async () => {
+    const event = request('/api/private', undefined, 'Bearer abc')
+    await middleware(event)
+    expect(getSession).toHaveBeenCalledOnce()
+    expect(event.context.auth).toEqual(member)
+  })
+
+  it('rejects an empty bearer header without loading a session', async () => {
+    await expect(middleware(request('/api/private', undefined, 'Bearer '))).rejects.toMatchObject({ statusCode: 401 })
+    expect(getSession).not.toHaveBeenCalled()
   })
 
   it('rejects a signed-in non-admin on an admin path', async () => {

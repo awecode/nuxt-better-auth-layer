@@ -28,7 +28,7 @@ Nuxt registers `layers/*` on its own.
 
 ### Configure better-auth
 
-The layer provides a default configuration for better-auth in `server/utils/auth.config.ts`. To change it, add `server/auth.options.ts` to the app (see [Customize better-auth](#customize-better-auth)) instead of editing the layer. Client configuration is in `composables/auth.client.config.ts`.
+The layer provides a default configuration for better-auth in `server/utils/auth.config.ts`. To change it, add `server/auth.options.ts` to the app (see [Customize better-auth](#customize-better-auth)) instead of editing the layer. To add better-auth client plugins, add `app/auth.client.options.ts` to the app (see [Client plugins](#client-plugins)).
 
 The default configuration uses the drizzle adapter with Postgres. For SQLite or D1, set `NUXT_AUTH_DB_PROVIDER=sqlite` in `.env` (`mysql` also works). Use the env var rather than `runtimeConfig`, because the better-auth CLI reads `.env` but not `nuxt.config.ts`. The app's `server/utils/db.ts` must export:
 
@@ -86,6 +86,23 @@ export default {
   })],
 } satisfies BetterAuthOptions
 ```
+
+`customSession` types the session with the admin plugin and the app's plugins, so fields such as `session.activeOrganizationId` from `organization()` are typed on `getAuthSession(event)`.
+
+### Client plugins
+
+A server plugin that adds endpoints usually has a client plugin (`organization()` and `organizationClient()`). Add `app/auth.client.options.ts` to the app and export better-auth client options. The layer adds the plugins after its own (magic link, admin), and `useAuth().client` gets their methods and types:
+
+```ts
+import type { BetterAuthClientOptions } from 'better-auth/client'
+import { organizationClient } from 'better-auth/client/plugins'
+
+export default {
+  plugins: [organizationClient()],
+} satisfies BetterAuthClientOptions
+```
+
+The layer finds the file through the `#auth-client-options` alias. Restart the dev server after creating it.
 
 ## Migrate database
 
@@ -145,6 +162,8 @@ NUXT_SES_SECRET_KEY=your_secret_key
 NUXT_SES_FROM_EMAIL=noreply@example.com
 # Magic link email subject (optional - default "Log in to your account")
 NUXT_AUTH_MAGIC_LINK_SUBJECT="Sign in to Example"
+# Seconds a magic link stays valid (optional - default 300)
+NUXT_AUTH_MAGIC_LINK_EXPIRES_IN=900
 
 # Database provider (optional - pg by default, sqlite for SQLite or D1)
 NUXT_AUTH_DB_PROVIDER=sqlite
@@ -350,6 +369,8 @@ curl -X POST https://yourapp.com/api/protected \
   -H "Content-Type: application/json" \
   -d '{"data": "example"}'
 ```
+
+The route protection middleware (see [API Route Protection](#api-route-protection)) accepts a bearer token as well as the session cookie.
 
 ## Access Restrictions by Email Address or Domain
 
