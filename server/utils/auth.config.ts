@@ -69,7 +69,9 @@ const adminForTypes = admin()
 type SessionPlugins = [typeof adminForTypes, ...UnionToTuple<AppPlugins[number]>]
 
 export function createAuthConfig(db: Db) {
-  return {
+  // Defaults the app's server/auth.options.ts may replace. An object, so an app
+  // that sets one of them (such as emailAndPassword) is not a duplicate key.
+  const defaults = {
     emailAndPassword: {
       enabled: false,
     },
@@ -78,9 +80,11 @@ export function createAuthConfig(db: Db) {
       provider: getDbProvider(),
       usePlural: true,
     }),
-    // The app's server/auth.options.ts replaces the options above. Its social
-    // providers and plugins are added to the layer's, and its hooks run
-    // alongside the allowlist.
+  }
+  return {
+    ...defaults,
+    // The app's options replace the defaults above. Its social providers and
+    // plugins are added to the layer's, and its hooks run alongside the allowlist.
     ...appOptions,
     // Google login turns on when NUXT_AUTH_GOOGLE_CLIENT_ID and NUXT_AUTH_GOOGLE_CLIENT_SECRET are set.
     socialProviders: { ...getSocialProviders(), ...(appOptions as BetterAuthOptions).socialProviders },

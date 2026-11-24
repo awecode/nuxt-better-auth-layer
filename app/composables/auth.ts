@@ -76,13 +76,17 @@ export function useAuth() {
   }
 
   const signOut = async ({ redirectTo }: { redirectTo?: RouteLocationRaw } = {}) => {
-    const res = await client.signOut()
-    session.value = null
-    user.value = null
-    if (redirectTo) {
-      await navigateTo(redirectTo)
+    try {
+      return await client.signOut()
     }
-    return res
+    finally {
+      // Clear local state even when the request fails
+      session.value = null
+      user.value = null
+      if (redirectTo) {
+        await navigateTo(redirectTo)
+      }
+    }
   }
 
   if (import.meta.client) {
