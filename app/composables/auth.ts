@@ -4,6 +4,7 @@ import { createAuthClient } from 'better-auth/client'
 import { defu } from 'defu'
 import { authClientConfig } from './auth.client.config'
 import { authDataForClient } from '#layers/auth/shared/sessionForClient'
+import { fetchServerAuthSession } from '#layers/auth/app/lib/serverSession'
 import type {
   InferSessionFromClient,
   InferUserFromClient,
@@ -52,11 +53,7 @@ export function useAuth() {
         return null
       }
 
-      // HTTP fallback if in-process reads break on Workers:
-      // const result = await useFetch('/api/auth/get-session', { headers })
-      // const data = result.data.value
-      const { getAuthSession } = await import('#layers/auth/server/utils/session')
-      const data = authDataForClient(await getAuthSession(event))
+      const data = await fetchServerAuthSession(event)
 
       session.value = (data?.session ?? null) as typeof session.value
       user.value = (data?.user ?? null) as typeof user.value

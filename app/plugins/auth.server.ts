@@ -1,5 +1,5 @@
 import { getSessionCookie } from 'better-auth/cookies'
-import { sessionForClient } from '#layers/auth/shared/sessionForClient'
+import { fetchServerAuthSession } from '#layers/auth/app/lib/serverSession'
 
 export default defineNuxtPlugin({
   name: 'better-auth-fetch-plugin',
@@ -14,9 +14,8 @@ export default defineNuxtPlugin({
 
       const session = useState<unknown>('auth:session', () => null)
       const user = useState<unknown>('auth:user', () => null)
-      const { getAuthSession } = await import('#layers/auth/server/utils/session')
-      const data = await getAuthSession(event)
-      session.value = sessionForClient(data?.session)
+      const data = await fetchServerAuthSession(event)
+      session.value = data?.session ?? null
       user.value = data?.user ?? null
     }
   },
