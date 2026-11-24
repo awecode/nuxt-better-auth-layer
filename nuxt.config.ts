@@ -22,7 +22,10 @@ export default defineNuxtConfig({
       authenticatedOnlyApiRoutesDefault: '',
       adminOnlyApiRoutesDefault: '',
       googleClientId: process.env.NUXT_AUTH_GOOGLE_CLIENT_ID || '',
-      googleClientSecret: process.env.NUXT_AUTH_GOOGLE_CLIENT_SECRET || '',
+      // Secrets default to empty: nuxt.config runs at build time, and a value
+      // read here would be copied into the build. NUXT_AUTH_GOOGLE_CLIENT_SECRET
+      // and NUXT_SES_SECRET_KEY still set them at runtime.
+      googleClientSecret: '',
       magicLinkSubject: process.env.NUXT_AUTH_MAGIC_LINK_SUBJECT || 'Log in to your account',
       // Seconds a magic link stays valid
       magicLinkExpiresIn: process.env.NUXT_AUTH_MAGIC_LINK_EXPIRES_IN || 300,
@@ -30,7 +33,7 @@ export default defineNuxtConfig({
     ses: {
       region: process.env.NUXT_SES_REGION || 'us-east-1',
       accessKeyId: process.env.NUXT_SES_ACCESS_KEY_ID || '',
-      secretKey: process.env.NUXT_SES_SECRET_KEY || '',
+      secretKey: '',
       fromEmail: process.env.NUXT_SES_FROM_EMAIL || '',
     },
     public: {
